@@ -1,0 +1,10 @@
+.bt-enter {
+  background-color: #fff;
+  font-size: 15px;
+  padding: 0 30px 0 30px;
+  border-radius: 5px;
+  &:hover {
+    background-color: #111;
+    color: #fff;
+  }
+}
