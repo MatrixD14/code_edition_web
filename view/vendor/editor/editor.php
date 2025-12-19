@@ -22,14 +22,21 @@ $login->protect();
             <ul class="menu_top">
                 <li class="file_push_open">📄</li>
                 <li>💾</li>
+
                 <li>
-                    <label for="open_file" style="cursor:pointer;">📁</label>
-                    <input type="file" id="open_file" name="open_file" style="display:none;">
+                    <label for="open_file" id="btn_open_project" style="cursor:pointer;">📁</label>
                 </li> 
+                <li>
+                    <label for="upload_projeto" id="btn_upload_projeto" style="cursor:pointer;">⬆️</label>
+                    <input type="file" id="upload_projeto" name="file[]" webkitdirectory directory multiple style="display:none;">
+                </li>
             </ul>
             <ul class="menu_bottom">
                 <li>⚙️</li>
             </ul>
+        </div>
+        <div id="projects_selector" class="projects-menu hidden">
+            <ul id="projects_list"></ul>
         </div>
         <div class="painel_path">
             <div class="mune_select_file_dir">
@@ -40,17 +47,13 @@ $login->protect();
             </div>
             <div class="path_display">
                 <ul>
-                    <li>path1</li>
-                    <li>path2</li>
-                    <li>path3</li>
-                    <li>path4</li>
-                    <li>path5</li>
                 </ul>   
             </div>
         </div>
         <div class="editor_terminal_container">
             <div class="editor-box">
-                <textarea name="editor" class="editor"id=""></textarea>
+                <pre id="highlight-layer"><code id="highlight-content"></code></pre>
+                <textarea class="editor" id="code-input" spellcheck="false"></textarea>
             </div>
             <div class="terminal-box">
                 <div class="terminal_top">
@@ -78,5 +81,8 @@ $login->protect();
             painel_path.style.display = painel_path.style.display === 'none' ? 'block' : 'none';
         }); 
     </script>
+    <script src="./upload_path_editor.js"></script>
+    <script src="./list_path_editor.js"></script>
+    <script src="./highlighter.js"></script>
     </body>
 </html>

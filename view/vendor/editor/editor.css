@@ -25,6 +25,8 @@ body {
   flex: 1;
   width: 100%;
   align-items: stretch;
+  height: calc(100vh - 45px);
+  overflow: hidden;
 }
 
 .painel_path,
@@ -39,11 +41,16 @@ body {
   width: 50px;
   display: flex;
   flex-direction: column;
+  height: 100%;
+  min-height: 0;
 }
 
 .painel_path {
   width: 250px;
   background: #222;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .editor_terminal_container {
@@ -54,16 +61,47 @@ body {
 }
 
 .menu_top,
-.menu_bottom,
-.path_display ul {
+.menu_bottom {
   list-style: none;
+  padding: 0;
+  margin: 0;
   display: flex;
   flex-direction: column;
 }
-.menu_top,
-.menu_bottom {
+.path_display ul {
+  list-style: none;
   padding: 0;
   margin: 0;
+  display: block;
+  width: max-content;
+  min-width: 100%;
+}
+.path_display {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  min-height: 0;
+  width: 100%;
+}
+.path_display li {
+  padding: 8px 15px;
+  cursor: pointer;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 14px;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+.nome_diretory {
+  overflow-y: hidden;
+  overflow-x: auto;
+  white-space: nowrap;
+  font-size: 14px;
+  display: block;
+}
+.menu_top,
+.menu_bottom {
   text-align: center;
 }
 
@@ -153,3 +191,120 @@ body {
   text-decoration: none;
   cursor: pointer;
 }
+.path_display li:hover {
+  background-color: #333;
+}
+/* Estilo para a lista de projetos que aparecerá */
+.projects-menu {
+  position: absolute;
+  left: 60px;
+  top: 50px;
+  background: #252526;
+  border: 1px solid #454545;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  min-width: 200px;
+}
+
+.projects-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.projects-menu li {
+  padding: 10px 15px;
+  cursor: pointer;
+  border-bottom: 1px solid #333;
+}
+
+.projects-menu li:hover {
+  background: #37373d;
+}
+
+.hidden {
+  display: none;
+}
+.path_display::-webkit-scrollbar {
+  width: 6px;
+}
+
+.path_display::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 10px;
+}
+
+.path_display::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.code-container {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+/* Container que segura o editor */
+.editor-box {
+  position: relative;
+  flex: 1;
+  background: #575d69; /* Cor de fundo estilo One Dark */
+  overflow: hidden;
+}
+
+/* Base comum para o textarea e para a camada de cor */
+.editor,
+#highlight-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 15px;
+  font-size: 15px;
+  line-height: 1.5;
+  border: none;
+  white-space: pre; /* Importante para manter espaços e tabs */
+  word-wrap: normal;
+  overflow: auto;
+  box-sizing: border-box;
+}
+
+/* O Textarea fica transparente por cima */
+.editor {
+  background: transparent;
+  color: transparent; /* Esconde o texto preto padrão */
+  caret-color: #fff; /* Cor do cursor que pisca */
+  z-index: 2;
+  resize: none;
+  outline: none;
+}
+
+/* A camada de destaque fica por baixo */
+#highlight-layer {
+  z-index: 1;
+  pointer-events: none; /* Deixa os cliques passarem para o textarea */
+  color: #fff;
+}
+#highlight-content {
+  display: block;
+  counter-reset: line; /* Opcional: se quiser números de linha depois */
+}
+/* Cores da Sintaxe */
+.token-keyword {
+  color: #000080;
+  font-weight: bold;
+} /* if, function, return */
+.token-string {
+  color: #98c379;
+} /* "texto" */
+.token-comment {
+  color: #0b6918;
+  font-style: italic;
+}
+.token-number {
+  color: #d8761b;
+} /* 123 */
+.token-tag {
+  color: #d10d1d;
+} /* <html> */
