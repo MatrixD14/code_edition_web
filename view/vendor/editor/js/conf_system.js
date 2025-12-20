@@ -3,6 +3,7 @@ const painelConfig = document.querySelector(".painel-config");
 configSettings.addEventListener("click", (e) => {
   e.stopPropagation();
   painelConfig.classList.toggle("hidden");
+  projectSelector.classList.add("hidden");
 });
 painelConfig.addEventListener("click", (e) => e.stopPropagation());
 document.addEventListener("click", () => painelConfig.classList.add("hidden"));

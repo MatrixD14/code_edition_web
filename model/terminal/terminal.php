@@ -82,7 +82,7 @@ if (is_resource($process)) {
 
         if (time() - $start > $timeout) {
             proc_terminate($process);
-            $output .= "\n⏱️ Processo finalizado por tempo limite de ${$timeout}s.";
+            $output .= "\n⏱️ Processo finalizado por tempo limite de {$timeout}s.";
             break;
         }
 

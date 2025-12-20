@@ -17,6 +17,7 @@ file_push_open.addEventListener("click", () => {
 btnOpenProject.addEventListener("click", async (e) => {
   e.stopPropagation();
   projectSelector.classList.toggle("hidden");
+  painelConfig.classList.add("hidden");
 
   const r = await fetch("../../../model/editor/list_path.php");
   const items = await r.json();
@@ -33,6 +34,13 @@ projectsList.addEventListener("click", (e) => {
 
   const projectPath = li.dataset.path;
   const projectName = li.textContent;
+
+  if (typeof sincronizarTerminalComProjeto === "function")
+    sincronizarTerminalComProjeto(projectPath);
+  else {
+    window.terminalCWD = projectPath;
+    console.warn("Terminal ainda não carregado, salvando caminho...");
+  }
 
   currentProjectRoot = projectPath;
   currentSelectedFolder = projectPath;

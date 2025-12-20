@@ -18,7 +18,7 @@ $login->protect();
     <body >
         <nav class="top">
             <a href="../../../controller/login/logout.php"><?=$_SESSION["nome"]?></a>
-            
+            <a id="btn_fullscreen" title="Tela Cheia">⛶</a>
         </nav>
         <div class="box-editor">
             <div class="path_menu">
@@ -94,5 +94,6 @@ $login->protect();
         <script src="./js/highlighter.js"></script>
         <script src="./js/terminal.js"></script>
         <script src="./js/conf_system.js"></script>
+        <script src="./js/fullscreen.js"></script>
     </body>
 </html>
