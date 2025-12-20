@@ -32,12 +32,15 @@
   width: 100%;
 }
 .terminal {
-  height: 30%;
-  min-height: 150px;
+  height: 150px;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
   margin: 0 0 10px 0;
   outline: none;
+}
+.terminal-line {
+  color: #ccc;
+  margin: 0;
 }

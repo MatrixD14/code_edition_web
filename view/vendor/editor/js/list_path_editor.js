@@ -44,7 +44,6 @@ projectsList.addEventListener("click", (e) => {
 
   currentProjectRoot = projectPath;
   currentSelectedFolder = projectPath;
-  sincronizarTerminalComProjeto(projectPath);
   document.querySelector(".nome_diretory").textContent = projectName;
   projectSelector.classList.add("hidden");
   pathDisplay.innerHTML = "<li>Carregando projeto...</li>";

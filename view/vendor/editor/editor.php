@@ -45,14 +45,9 @@ $login->protect();
             <h3 >Configurações</h3>
             <hr>
             <label for="font_size">Tamanho da fonte:</label>
-            <input type="number" id="font_size" name="font_size" min="10" max="30" value="14">
+            <input type="number" id="font_size" name="font_size" min="10" max="35" value="14">
             <br><br>
-            <label for="theme_select">Tema:</label>
-            <select id="theme_select" name="theme_select">
-                <option value="light">Claro</option>
-                <option value="dark">Escuro</option>
-            </select>
-
+            <button id="close_config" class>Enter</button>
         </div>
         <div class="painel_path">
             <div class="mune_select_file_dir">
@@ -89,11 +84,11 @@ $login->protect();
                     </div>
                 </div>
 
+                <script src="./js/conf_system.js"></script>
         <script src="./js/upload_path_editor.js"></script>
         <script src="./js/list_path_editor.js"></script>
         <script src="./js/highlighter.js"></script>
         <script src="./js/terminal.js"></script>
-        <script src="./js/conf_system.js"></script>
         <script src="./js/fullscreen.js"></script>
     </body>
 </html>

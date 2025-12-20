@@ -99,6 +99,7 @@ inputTerm.addEventListener("keydown", async (e) => {
           cwd: effectiveCWD,
         }),
       });
+      if (!response.ok) throw new Error("Resposta do servidor inválida");
 
       const res = await response.json();
 
@@ -109,18 +110,19 @@ inputTerm.addEventListener("keydown", async (e) => {
 
       if (res.output) {
         const pre = document.createElement("pre");
-        pre.style.color = "#ccc";
+        pre.className = "terminal-line";
         pre.style.whiteSpace = "pre-wrap";
-        pre.style.margin = "0";
         pre.textContent = res.output;
         outputTerm.appendChild(pre);
       }
-
-      scrollToBottom();
-      inputTerm.focus();
     } catch (err) {
       outputTerm.innerHTML += `<div style="color:red">Erro crítico: Verifique a conexão com o terminal.php</div>`;
+      terminalCWD = "";
+      window.terminalCWD = "";
+      console.error("Erro no terminal:", err);
     }
+    scrollToBottom();
+    inputTerm.focus();
   }
 });
 terminal_toggle.addEventListener("click", () => {
