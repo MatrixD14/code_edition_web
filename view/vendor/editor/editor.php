@@ -12,6 +12,7 @@ $login->protect();
         <link rel="stylesheet" href="./css/editor.css">
         <link rel="stylesheet" href="./css/color_text.css">
         <link rel="stylesheet" href="./css/terminal_style.css">
+        <link rel="stylesheet" href="./css/confing.css">
         <title>editor</title>
     </head>
     <body >
@@ -32,11 +33,26 @@ $login->protect();
                 </li>
             </ul>
             <ul class="menu_bottom">
-                <li title="Configurações">⚙️</li>
+                <li title="Configurações" class="config_settings">⚙️</li>
             </ul>
         </div>
         <div id="projects_selector" class="projects-menu hidden">
+            <h3>Projetos Recentes</h3>
+            <hr>
             <ul id="projects_list"></ul>
+        </div>
+        <div class="painel-config hidden" id="painel-config">
+            <h3 >Configurações</h3>
+            <hr>
+            <label for="font_size">Tamanho da fonte:</label>
+            <input type="number" id="font_size" name="font_size" min="10" max="30" value="14">
+            <br><br>
+            <label for="theme_select">Tema:</label>
+            <select id="theme_select" name="theme_select">
+                <option value="light">Claro</option>
+                <option value="dark">Escuro</option>
+            </select>
+
         </div>
         <div class="painel_path">
             <div class="mune_select_file_dir">
@@ -77,5 +93,6 @@ $login->protect();
         <script src="./js/list_path_editor.js"></script>
         <script src="./js/highlighter.js"></script>
         <script src="./js/terminal.js"></script>
+        <script src="./js/conf_system.js"></script>
     </body>
 </html>

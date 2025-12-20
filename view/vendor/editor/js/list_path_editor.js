@@ -36,8 +36,8 @@ projectsList.addEventListener("click", (e) => {
 
   currentProjectRoot = projectPath;
   currentSelectedFolder = projectPath;
+  sincronizarTerminalComProjeto(projectPath);
   document.querySelector(".nome_diretory").textContent = projectName;
-
   projectSelector.classList.add("hidden");
   pathDisplay.innerHTML = "<li>Carregando projeto...</li>";
 
@@ -207,8 +207,19 @@ function selecionarItem(elemento, caminho) {
 
   if (elemento.classList.contains("file")) {
     currentSelectedFolder = caminho.substring(0, caminho.lastIndexOf("/"));
-  } else {
-    currentSelectedFolder = caminho;
+  } else currentSelectedFolder = caminho;
+  window.terminalCWD = currentSelectedFolder;
+}
+function sincronizarTerminalComProjeto(path) {
+  window.terminalCWD = path;
+
+  const outputTerm = document.getElementById("terminal-output");
+  if (outputTerm) {
+    outputTerm.innerHTML += `<div style="color: #e2c08d; font-size: 0.8em;">-- Root alterado: ${path
+      .split("/")
+      .pop()} --</div>`;
+    const container = document.querySelector(".terminal");
+    if (container) container.scrollTop = container.scrollHeight;
   }
 }
 
@@ -248,7 +259,6 @@ async function renameResource() {
     alert("Selecione um arquivo ou pasta para renomear.");
     return;
   }
-
   const oldName = currentSelectedPath.split("/").pop();
   const newName = prompt("Digite o novo nome:", oldName);
 

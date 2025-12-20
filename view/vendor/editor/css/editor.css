@@ -163,13 +163,17 @@ body {
   background-color: #333;
 }
 .projects-menu {
-  left: 60px;
-  top: 50px;
+  position: fixed;
+  left: 50%;
+  top: 50%;
   background: #252526;
   border: 1px solid #454545;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
   z-index: 1000;
-  min-width: 200px;
+  width: 50%;
+  min-width: 500px;
+  transform: translate(-50%, -150%);
+  padding: 0 20px 20px 20px;
 }
 
 .projects-menu ul {

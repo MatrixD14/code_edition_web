@@ -2,6 +2,8 @@
 require_once '../../bootstrap.php';
 header('Content-Type: application/json');
 
+$timeout = 120;
+
 $json = file_get_contents('php://input');
 $data = json_decode($json, true);
 
@@ -11,9 +13,7 @@ if (empty($command)) exit;
 
 $danger_patterns = ['rm -rf /', 'rm -rf *', 'mkfs', ':(){ :|:& };:', '> /dev/sda'];
 
-$forbidden_executables = ['sudo', 'apt', 'su', 'shutdown', 'reboot', 'chmod', 'chown', 'ufw','dd','mkfs','nano','vim','vi','less','more','top','htop','watch','php -S','node','npm','yarn','python -m','serve','http-server','sleep',];
-
-$forbidden_paths = ['/etc', '/bin', '/usr', '/var', '/root', '/boot', '/proc', '/sys'];
+$forbidden_executables = ['sudo', 'apt', 'su', 'shutdown', 'reboot', 'chmod', 'chown', 'ufw','dd','mkfs','nano','vim','vi','less','more','top','htop','watch','php -S','node','npm','yarn','python -m','serve','http-server','sleep','ssh'];
 
 $subCommands = preg_split('/(&&|\|\||;|\|)/', $command);
 foreach ($subCommands as $sub) {
@@ -55,14 +55,18 @@ if (preg_match('/^cd\s+(.+)$/', $command, $matches)) {
     exit;
 }
 
-chdir($currentDir);
+if (!empty($currentDir) && is_dir($currentDir)) {
+    chdir($currentDir);
+} else {
+    chdir(realpath(HTDOC)); 
+}
 
 $descriptorspec = [
     1 => ["pipe", "w"], 
     2 => ["pipe", "w"] 
 ];
 
-$process = proc_open($command, $descriptorspec, $pipes, $currentDir);
+$process = proc_open($command, $descriptorspec, $pipes, getcwd());
 
 $output = '';
 
@@ -76,9 +80,9 @@ if (is_resource($process)) {
         $output .= stream_get_contents($pipes[1]);
         $output .= stream_get_contents($pipes[2]);
 
-        if (time() - $start > 2) {
+        if (time() - $start > $timeout) {
             proc_terminate($process);
-            $output .= "\n⏱️ Processo finalizado por tempo limite.";
+            $output .= "\n⏱️ Processo finalizado por tempo limite de ${$timeout}s.";
             break;
         }
 
@@ -91,15 +95,14 @@ if (is_resource($process)) {
     proc_close($process);
 }
 
-$rootPath = realpath(HTDOC);
-$currentPath = getcwd();
+$finalOutput = trim($output);
 
-$displayPath = str_replace($rootPath, 'htdocs', $currentPath);
-if ($relativePath === $currentPath) {
-    $relativePath = 'htdocs';
+if (empty($finalOutput)) {
+    $finalOutput = "[Vazio ou comando sem retorno]";
 }
+
 echo json_encode([
-    'output' => trim($output) ?: "Concluído.",
-    'newCwd' => $currentPath, 
-    'relativeCwd' => $displayPath 
+    'output' => $finalOutput,
+    'newCwd' => getcwd(),
+    'debug_path' => getcwd() 
 ]);

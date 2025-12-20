@@ -23,13 +23,8 @@ function getRelativePath(fullPath) {
   return "/";
 }
 
-let display_terminal = document.querySelector(".terminal"),
+let display_terminal = document.querySelector(".terminal-body"),
   terminal_toggle = document.querySelector(".terminal_btn");
-
-terminal_toggle.addEventListener("click", () => {
-  display_terminal.style.display =
-    display_terminal.style.display === "none" ? "block" : "none";
-});
 
 inputTerm.addEventListener("keydown", async (e) => {
   if (e.key === "Tab") {
@@ -56,7 +51,7 @@ inputTerm.addEventListener("keydown", async (e) => {
           body: JSON.stringify({
             partial: partialName,
             cwd:
-              terminalCWD ||
+              window.terminalCWD ||
               (typeof currentProjectRoot !== "undefined"
                 ? currentProjectRoot
                 : ""),
@@ -89,6 +84,8 @@ inputTerm.addEventListener("keydown", async (e) => {
       return;
     }
 
+    let effectiveCWD = window.terminalCWD || terminalCWD || "";
+
     const pathPrompt = getRelativePath(terminalCWD);
     outputTerm.innerHTML += `<div><span style="color:#56b6c2">user@android:${pathPrompt} $</span> ${cmd}</div>`;
     inputTerm.value = "";
@@ -99,11 +96,7 @@ inputTerm.addEventListener("keydown", async (e) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           command: cmd,
-          cwd:
-            terminalCWD ||
-            (typeof currentProjectRoot !== "undefined"
-              ? currentProjectRoot
-              : ""),
+          cwd: effectiveCWD,
         }),
       });
 
@@ -111,6 +104,7 @@ inputTerm.addEventListener("keydown", async (e) => {
 
       if (res.newCwd) {
         terminalCWD = res.newCwd;
+        window.terminalCWD = res.newCwd;
       }
 
       if (res.output) {
@@ -128,4 +122,9 @@ inputTerm.addEventListener("keydown", async (e) => {
       outputTerm.innerHTML += `<div style="color:red">Erro crítico: Verifique a conexão com o terminal.php</div>`;
     }
   }
+});
+terminal_toggle.addEventListener("click", () => {
+  const isHidden = display_terminal.classList.contains("hidden");
+  display_terminal.classList.toggle("hidden");
+  if (isHidden) inputTerm.focus();
 });
