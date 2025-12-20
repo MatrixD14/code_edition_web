@@ -11,6 +11,5 @@ if (!$path || !is_file($path) || strpos($path, realpath(HTDOC)) !== 0) {
 }
 
 header('Content-Type: text/plain');
-// Jeito mais seguro de ler arquivos grandes no PHP
 $content = file_get_contents($path);
 echo $content;

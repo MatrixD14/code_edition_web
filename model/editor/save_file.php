@@ -15,7 +15,7 @@ $content = $data['content'] ?? '';
 $path = realpath(HTDOC . DIRECTORY_SEPARATOR . $file);
 
 if (!$path || strpos($path, realpath(HTDOC)) !== 0) {
-    ob_clean(); // Limpa o buffer
+    ob_clean();
     header('Content-Type: application/json');
     echo json_encode(['status' => 'error', 'message' => 'Caminho inválido ou fora do HTDOC']);
     exit;
