@@ -1,2 +1,3 @@
 .editorConf
-/htdoc/
+/htdoc/*
+!/htdoc/importante.txt
