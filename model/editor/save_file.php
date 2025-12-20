@@ -2,7 +2,7 @@
 ini_set('display_errors', 0); 
 error_reporting(E_ALL);
 
-require_once '../bootstrap.php';
+require_once '../../bootstrap.php';
 
 ob_start();
 

@@ -1,0 +1,20 @@
+.token-keyword {
+  color: #2b4f9c;
+  font-weight: bold;
+}
+.token-string {
+  color: #98c379;
+}
+.token-comment {
+  color: #0b6918;
+  font-style: italic;
+}
+.token-number {
+  color: #d8761b;
+}
+.token-tag {
+  color: #ff0015;
+}
+.token-keyvar {
+  color: #79d2e6;
+}

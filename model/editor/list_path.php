@@ -1,5 +1,5 @@
 <?php
-require_once '../bootstrap.php';
+require_once '../../bootstrap.php';
 
 $dir = $_GET['open_file'] ?? '';
 $path = realpath(HTDOC . '/' . $dir);

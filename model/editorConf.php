@@ -29,7 +29,7 @@ class Env {
         self::$loaded = true;
     }
 
-    public static function get(string $section, string $key = null, $default = null) {
+    public static function get(string $section, ?string $key = null, $default = null) {
         if (!isset(self::$data[$section])) return $default;
         if ($key === null) return self::$data[$section];
         return self::$data[$section][$key] ?? $default;

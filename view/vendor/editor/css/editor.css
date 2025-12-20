@@ -18,6 +18,12 @@ body {
 .top a {
   color: #fff;
   text-decoration: none;
+  padding: 5px 10px 5px 10px;
+  &:hover {
+    color: #f00;
+    background-color: #fff;
+    border-radius: 3px;
+  }
 }
 
 .box-editor {
@@ -46,7 +52,7 @@ body {
 }
 
 .painel_path {
-  width: 250px;
+  width: 300px;
   background: #222;
   display: flex;
   flex-direction: column;
@@ -120,14 +126,11 @@ body {
   display: flex;
 }
 
-.editor,
-.terminal-text {
+.editor {
   width: 100%;
   border: none;
   background: transparent;
   color: #fff;
-  resize: none;
-  font-family: "Courier New", monospace;
 }
 
 .editor {
@@ -135,42 +138,7 @@ body {
   padding: 15px;
   font-size: 16px;
   outline: none;
-}
-
-.terminal-box {
-  background: #1e1e1e;
-  border-top: 1px solid #555;
-  color: #0f0;
-}
-
-.terminal-text {
-  height: 120px;
-  padding: 10px;
-  outline: none;
-}
-
-.terminal_input_button {
-  display: flex;
-  padding: 5px;
-}
-
-.terminal_input {
-  flex: 1;
-  background: #1e1e1e;
-  color: #0f0;
-  border: 1px solid #555;
-  padding: 5px;
-  margin-right: 5px;
-  outline: none;
-}
-
-.terminal_submit,
-.terminal_btn {
-  background: #222;
-  color: #0f0;
-  border: 1px solid #555;
-  cursor: pointer;
-  padding: 5px 15px;
+  resize: none;
 }
 
 .mune_select_file_dir {
@@ -194,9 +162,7 @@ body {
 .path_display li:hover {
   background-color: #333;
 }
-/* Estilo para a lista de projetos que aparecerá */
 .projects-menu {
-  position: absolute;
   left: 60px;
   top: 50px;
   background: #252526;
@@ -243,15 +209,13 @@ body {
   flex: 1;
   overflow: hidden;
 }
-/* Container que segura o editor */
 .editor-box {
   position: relative;
   flex: 1;
-  background: #575d69; /* Cor de fundo estilo One Dark */
+  background: #1a1a1a;
   overflow: hidden;
 }
 
-/* Base comum para o textarea e para a camada de cor */
 .editor,
 #highlight-layer {
   position: absolute;
@@ -264,47 +228,39 @@ body {
   font-size: 15px;
   line-height: 1.5;
   border: none;
-  white-space: pre; /* Importante para manter espaços e tabs */
+  white-space: pre;
   word-wrap: normal;
   overflow: auto;
   box-sizing: border-box;
 }
 
-/* O Textarea fica transparente por cima */
 .editor {
   background: transparent;
-  color: transparent; /* Esconde o texto preto padrão */
-  caret-color: #fff; /* Cor do cursor que pisca */
+  color: transparent;
+  caret-color: #fff;
   z-index: 2;
   resize: none;
   outline: none;
 }
 
-/* A camada de destaque fica por baixo */
 #highlight-layer {
   z-index: 1;
-  pointer-events: none; /* Deixa os cliques passarem para o textarea */
+  pointer-events: none;
   color: #fff;
 }
 #highlight-content {
   display: block;
-  counter-reset: line; /* Opcional: se quiser números de linha depois */
+  counter-reset: line;
 }
-/* Cores da Sintaxe */
-.token-keyword {
-  color: #000080;
+
+.item-selecionado {
+  background-color: #3e4451 !important;
+  color: #ffffff !important;
   font-weight: bold;
-} /* if, function, return */
-.token-string {
-  color: #98c379;
-} /* "texto" */
-.token-comment {
-  color: #0b6918;
-  font-style: italic;
 }
-.token-number {
-  color: #d8761b;
-} /* 123 */
-.token-tag {
-  color: #d10d1d;
-} /* <html> */
+#highlight-layer {
+  pointer-events: none;
+}
+#code-input {
+  tab-size: 4;
+}

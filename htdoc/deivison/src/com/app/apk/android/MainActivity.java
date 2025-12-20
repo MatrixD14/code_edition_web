@@ -23,18 +23,6 @@ public class MainActivity extends Activity {
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setGravity(Gravity.CENTER);
 
-        TextView tv = new TextView(this);
-        tv.setText("Cliques: 0");
-
-        Button bt = new Button(this);
-        bt.setText("Clicar");
-
-        bt.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                tv.setText(core.click());
-            }
-        });
         Button resetBt = new Button(this);
         resetBt.setText("Resetar");
         resetBt.setOnClickListener(new View.OnClickListener() {
@@ -44,8 +32,6 @@ public class MainActivity extends Activity {
             }
         });
 
-        layout.addView(tv);
-        layout.addView(bt);
         layout.addView(resetBt);
 
         setContentView(layout);

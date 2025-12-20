@@ -1,5 +1,5 @@
 <?php
-require_once '../bootstrap.php';
+require_once '../../bootstrap.php';
 
 $file = $_GET['file'] ?? '';
 $path = realpath(HTDOC . '/' . $file);
@@ -11,4 +11,6 @@ if (!$path || !is_file($path) || strpos($path, realpath(HTDOC)) !== 0) {
 }
 
 header('Content-Type: text/plain');
-echo file_get_contents($path);
+// Jeito mais seguro de ler arquivos grandes no PHP
+$content = file_get_contents($path);
+echo $content;
