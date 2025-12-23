@@ -253,7 +253,6 @@ body {
   overflow: hidden;
 }
 #highlight-content {
-  position: relative;
   display: block;
   counter-reset: line;
   width: 100%;

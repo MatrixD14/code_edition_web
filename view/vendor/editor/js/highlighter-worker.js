@@ -3,7 +3,7 @@ const rex_html =
 const rex_code =
   /(?<comment>\/\/.*|\/\*[\s\S]*?\*\/)|(?<string>"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(?<keyword>\b(?:function|return|var|let|const|if|else|for|while|php|echo|public|class|static|this|import|void|private|package|protected|new|extends|super|true|false|export|final|null|implements|interface|async|try|catch)\b)|(?<number>\b\d+\b)|(?<keyVar>\b(?:int|string|boolean|float|Toast|Button|TextView|LinearLayout|View|Bundle|double|char|long|short|byte|ArrayList|Context|Intent|Bitmap|HashMap|Override)\b)/gi;
 self.onmessage = function (e) {
-  const { code, extension, isXML } = e.data;
+  const { code, isXML } = e.data;
   let combinedRegex = isXML ? rex_html : rex_code;
 
   let highlighted = code.replace(combinedRegex, (match, ...args) => {
@@ -29,5 +29,5 @@ self.onmessage = function (e) {
     }
     return match;
   });
-  self.postMessage(highlighted + "\n");
+  self.postMessage(highlighted);
 };

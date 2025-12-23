@@ -52,15 +52,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let fileName = input.dataset.currentFile || "";
     let extension = fileName.split(".").pop().toLowerCase();
-    if (rawValue.length > 50000) {
+    if (rawValue.length > 50000 || extensionBloqueio.has(extension)) {
       output.textContent = rawValue;
       return;
     }
 
-    if (extensionBloqueio.has(extension)) {
-      output.innerHTML = rawValue;
-      return;
-    }
     let code = rawValue
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
