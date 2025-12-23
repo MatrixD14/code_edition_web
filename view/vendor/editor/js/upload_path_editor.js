@@ -1,10 +1,8 @@
-const inputUpload = document.getElementById("upload_projeto");
-
 inputUpload.addEventListener("change", async (e) => {
   const files = e.target.files;
   if (files.length === 0) return;
 
-  pathDisplay.innerHTML = "<li>Subindo projeto em partes...</li>";
+  ui.pathDisplay.innerHTML = "<li>Subindo projeto em partes...</li>";
 
   for (let i = 0; i < files.length; i++) {
     const formData = new FormData();
@@ -16,7 +14,9 @@ inputUpload.addEventListener("change", async (e) => {
         method: "POST",
         body: formData,
       });
-      pathDisplay.innerHTML = `<li>Enviando: ${i + 1} de ${files.length}</li>`;
+      ui.pathDisplay.innerHTML = `<li>Enviando: ${i + 1} de ${
+        files.length
+      }</li>`;
     } catch (error) {
       console.error("Erro no arquivo:", files[i].name);
     }

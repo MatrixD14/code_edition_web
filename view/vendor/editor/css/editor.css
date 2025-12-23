@@ -1,9 +1,10 @@
 :root {
-  --font-global: 15px;
+  --font-global: 14px;
+  --font-family: "Consolas", "Monaco", "Courier New", monospace;
 }
-* {
+/* * {
   font-size: var(--font-global);
-}
+} */
 body {
   color: #fff;
   height: 100vh;
@@ -131,26 +132,6 @@ body {
   cursor: pointer;
 }
 
-.editor-box {
-  flex: 1;
-  display: flex;
-}
-
-.editor {
-  width: 100%;
-  border: none;
-  background: transparent;
-  color: #fff;
-}
-
-.editor {
-  flex: 1;
-  padding: 15px;
-  font-size: 16px;
-  outline: none;
-  resize: none;
-}
-
 .mune_select_file_dir {
   display: flex;
   background: #3c3c3c;
@@ -224,6 +205,7 @@ body {
   overflow: hidden;
 }
 .editor-box {
+  display: flex;
   position: relative;
   flex: 1;
   background: #1a1a1a;
@@ -239,13 +221,19 @@ body {
   height: 100%;
   margin: 0;
   padding: 15px;
-  font-size: 15px;
-  line-height: 1.5;
   border: none;
   white-space: pre;
   word-wrap: normal;
-  overflow: auto;
   box-sizing: border-box;
+}
+
+.editor,
+#highlight-layer,
+#highlight-content {
+  font-family: var(--font-family) !important;
+  font-size: var(--font-global) !important;
+  line-height: 1.5;
+  tab-size: 4;
 }
 
 .editor {
@@ -255,12 +243,14 @@ body {
   z-index: 2;
   resize: none;
   outline: none;
+  overflow: auto;
 }
 
 #highlight-layer {
   z-index: 1;
   pointer-events: none;
   color: #fff;
+  overflow: hidden;
 }
 #highlight-content {
   display: block;
@@ -272,9 +262,7 @@ body {
   color: #ffffff !important;
   font-weight: bold;
 }
-#highlight-layer {
-  pointer-events: none;
-}
+
 #code-input {
   tab-size: 4;
 }

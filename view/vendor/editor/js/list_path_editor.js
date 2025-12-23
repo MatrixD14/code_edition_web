@@ -1,39 +1,34 @@
-const pathDisplay = document.querySelector(".path_display ul");
-const btnOpenProject = document.getElementById("btn_open_project");
-const projectSelector = document.getElementById("projects_selector");
-const projectsList = document.getElementById("projects_list");
-const btnSalvar = document.getElementById("salvar");
-const textareaEditor = document.querySelector(".editor");
-const nomeDiretorioDisplay = document.querySelector(".nome_diretory");
-let currentSelectedFolder = "",
-  currentProjectRoot = "",
-  painel_path = document.querySelector(".painel_path"),
-  file_push_open = document.querySelector(".file_push_open");
+let state = {
+  currentSelectedFolder: "",
+  currentProjectRoot: "",
+};
 
-file_push_open.addEventListener("click", () => {
-  painel_path.style.display =
-    painel_path.style.display === "none" ? "block" : "none";
-});
-btnOpenProject.addEventListener("click", async (e) => {
+ui.file_push_open.addEventListener(
+  "click",
+  () =>
+    (ui.painel_path.style.display =
+      ui.painel_path.style.display === "none" ? "block" : "none")
+);
+ui.btnOpenProject.addEventListener("click", async (e) => {
   e.stopPropagation();
-  projectSelector.classList.toggle("hidden");
+  ui.projectSelector.classList.toggle("hidden");
   painelConfig.classList.add("hidden");
 
   const r = await fetch("../../../model/editor/list_path.php");
   const items = await r.json();
 
-  projectsList.innerHTML = items
+  ui.projectsList.innerHTML = items
     .filter((item) => item.type === "dir")
     .map((item) => `<li data-path="${item.path}">📂 ${item.name}</li>`)
     .join("");
 });
 
-projectsList.addEventListener("click", (e) => {
+ui.projectsList.addEventListener("click", (e) => {
   const li = e.target.closest("li");
   if (!li) return;
 
-  const projectPath = li.dataset.path;
-  const projectName = li.textContent;
+  const projectPath = li.dataset.path,
+    projectName = li.textContent;
 
   if (typeof sincronizarTerminalComProjeto === "function")
     sincronizarTerminalComProjeto(projectPath);
@@ -42,11 +37,11 @@ projectsList.addEventListener("click", (e) => {
     console.warn("Terminal ainda não carregado, salvando caminho...");
   }
 
-  currentProjectRoot = projectPath;
-  currentSelectedFolder = projectPath;
-  document.querySelector(".nome_diretory").textContent = projectName;
-  projectSelector.classList.add("hidden");
-  pathDisplay.innerHTML = "<li>Carregando projeto...</li>";
+  state.currentProjectRoot = projectPath;
+  state.currentSelectedFolder = projectPath;
+  $(".nome_diretory").textContent = projectName;
+  ui.projectSelector.classList.add("hidden");
+  ui.pathDisplay.innerHTML = "<li>Carregando projeto...</li>";
 
   initProjectTree(projectPath);
 });
@@ -57,14 +52,14 @@ async function initProjectTree(path) {
   );
   const items = await r.json();
 
-  pathDisplay.innerHTML = "";
+  ui.pathDisplay.innerHTML = "";
   items.forEach((item) => {
-    pathDisplay.appendChild(createListItem(item));
+    ui.pathDisplay.appendChild(createListItem(item));
   });
 }
 
 document.addEventListener("click", () =>
-  projectSelector.classList.add("hidden")
+  ui.projectSelector.classList.add("hidden")
 );
 
 function createListItem(item) {
@@ -113,16 +108,15 @@ async function openFile(path) {
     const response = await fetch(
       `../../../model/editor/read_file.php?file=${encodeURIComponent(path)}`
     );
-    currentSelectedFolder = path.substring(0, path.lastIndexOf("/"));
+    state.currentSelectedFolder = path.substring(0, path.lastIndexOf("/"));
     const text = await response.text();
 
-    const input = document.getElementById("code-input");
+    const input = $("#code-input");
     if (input) {
       input.value = text;
-
       input.dataset.currentFile = path;
 
-      const displayNome = document.querySelector(".nome_diretory");
+      const displayNome = $(".nome_diretory");
       if (displayNome) displayNome.textContent = path.split("/").pop();
 
       input.dispatchEvent(new Event("input"));
@@ -132,8 +126,8 @@ async function openFile(path) {
   }
 }
 
-btnSalvar.addEventListener("click", async () => {
-  const input = document.getElementById("code-input");
+ui.btnSalvar.addEventListener("click", async () => {
+  const input = $("#code-input");
   const filePath = input.dataset.currentFile;
 
   if (!filePath) {
@@ -151,11 +145,8 @@ btnSalvar.addEventListener("click", async () => {
 
     try {
       const result = JSON.parse(rawText);
-      if (result.status === "success") {
-        alert("💾 Salvo com sucesso!");
-      } else {
-        alert("❌ Erro: " + result.message);
-      }
+      if (result.status === "success") alert("💾 Salvo com sucesso!");
+      else alert("❌ Erro: " + result.message);
     } catch (e) {
       console.error("Resposta do servidor não é JSON:", rawText);
       alert("Erro crítico no servidor. Veja o console (F12).");
@@ -166,7 +157,7 @@ btnSalvar.addEventListener("click", async () => {
 });
 
 async function createResource(type) {
-  const targetDir = currentSelectedFolder || currentProjectRoot;
+  const targetDir = state.currentSelectedFolder || state.currentProjectRoot;
 
   if (!targetDir) {
     alert("Por favor, abra um projeto primeiro!");
@@ -184,19 +175,19 @@ async function createResource(type) {
       body: JSON.stringify({
         type: type,
         name: name,
-        parentDir: currentSelectedFolder,
+        parentDir: state.currentSelectedFolder,
       }),
     });
 
     const result = await response.json();
     if (result.status === "success") {
       alert("Criado com sucesso!");
-      const liAtiva = document.querySelector(".item-selecionado");
+      const liAtiva = $(".item-selecionado");
       if (liAtiva && liAtiva.classList.contains("dir")) {
         liAtiva.dataset.open = "1";
         toggleDir(liAtiva);
         toggleDir(liAtiva);
-      } else initProjectTree(currentProjectRoot);
+      } else initProjectTree(state.currentProjectRoot);
     } else {
       alert("Erro: " + result.message);
     }
@@ -213,24 +204,27 @@ function selecionarItem(elemento, caminho) {
   currentSelectedPath = caminho;
 
   if (elemento.classList.contains("file")) {
-    currentSelectedFolder = caminho.substring(0, caminho.lastIndexOf("/"));
-  } else currentSelectedFolder = caminho;
-  window.terminalCWD = currentSelectedFolder;
+    state.currentSelectedFolder = caminho.substring(
+      0,
+      caminho.lastIndexOf("/")
+    );
+  } else state.currentSelectedFolder = caminho;
+  window.terminalCWD = state.currentSelectedFolder;
 }
 function sincronizarTerminalComProjeto(path) {
   window.terminalCWD = path;
 
-  const outputTerm = document.getElementById("terminal-output");
+  const outputTerm = $("#terminal-output");
   if (outputTerm) {
     outputTerm.innerHTML += `<div style="color: #e2c08d; font-size: 0.8em;">-- Root alterado: ${path
       .split("/")
       .pop()} --</div>`;
-    const container = document.querySelector(".terminal");
+    const container = $(".terminal");
     if (container) container.scrollTop = container.scrollHeight;
   }
 }
 
-document.getElementById("btn-delete").addEventListener("click", async () => {
+$("#btn-delete").addEventListener("click", async () => {
   if (!currentSelectedPath) {
     alert("Selecione um arquivo ou pasta para deletar.");
     return;
@@ -253,9 +247,7 @@ document.getElementById("btn-delete").addEventListener("click", async () => {
       alert("Deletado com sucesso!");
       currentSelectedPath = "";
       if (typeof listFiles === "function") listFiles();
-    } else {
-      alert("Erro: " + result.message);
-    }
+    } else alert("Erro: " + result.message);
   } catch (err) {
     alert("Erro ao deletar.");
   }
@@ -286,7 +278,7 @@ async function renameResource() {
     if (result.status === "success") {
       alert("Renomeado com sucesso!");
 
-      const liAtiva = document.querySelector(".item-selecionado");
+      const liAtiva = $(".item-selecionado");
       if (liAtiva) {
         const icon = liAtiva.classList.contains("dir") ? "📁" : "📄";
         liAtiva.innerHTML = `${icon} ${newName}`;
@@ -310,10 +302,6 @@ async function renameResource() {
   }
 }
 
-document.getElementById("btn_rename").addEventListener("click", renameResource);
-document
-  .getElementById("criar_file")
-  .addEventListener("click", () => createResource("file"));
-document
-  .getElementById("criar_dir")
-  .addEventListener("click", () => createResource("folder"));
+$("#btn_rename").addEventListener("click", renameResource);
+$("#criar_file").addEventListener("click", () => createResource("file"));
+$("#criar_dir").addEventListener("click", () => createResource("folder"));

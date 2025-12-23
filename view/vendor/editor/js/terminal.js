@@ -1,9 +1,5 @@
+// const $ = (q) => document.querySelector(q);
 let terminalCWD = "";
-const rootFolderName = "htdocs";
-
-const inputTerm = document.getElementById("terminal-input");
-const outputTerm = document.getElementById("terminal-output");
-const containerTerminal = document.querySelector(".terminal");
 
 function scrollToBottom() {
   if (containerTerminal) {
@@ -23,8 +19,8 @@ function getRelativePath(fullPath) {
   return "/";
 }
 
-let display_terminal = document.querySelector(".terminal-body"),
-  terminal_toggle = document.querySelector(".terminal_btn");
+let display_terminal = $(".terminal-body"),
+  terminal_toggle = $(".terminal_btn");
 
 inputTerm.addEventListener("keydown", async (e) => {
   if (e.key === "Tab") {
