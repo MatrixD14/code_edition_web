@@ -23,9 +23,21 @@ document.addEventListener("DOMContentLoaded", () => {
     "deb",
     "rpm",
     "cab",
+    "arj",
+    "lha",
+    "lzh",
+    "zoo",
+    "uue",
+    "bzip2",
+    "xz",
+    "lzma",
+    "lz4",
+    "snappy",
+    "zstd",
     "apk",
     "class",
     "jar",
+    "idsig",
     "dex",
     "log",
     "md",
@@ -66,7 +78,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let timeout;
   input.addEventListener("input", () => {
     clearTimeout(timeout);
-    timeout = setTimeout(sendToWorker, 50);
+    let delay = input.value.length > 25000 ? 200 : 50;
+    timeout = setTimeout(sendToWorker, delay);
   });
 
   input.addEventListener(

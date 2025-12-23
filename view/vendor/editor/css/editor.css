@@ -232,7 +232,7 @@ body {
 #highlight-content {
   font-family: var(--font-family) !important;
   font-size: var(--font-global) !important;
-  line-height: 1.5;
+  line-height: 20px;
   tab-size: 4;
 }
 
@@ -253,8 +253,10 @@ body {
   overflow: hidden;
 }
 #highlight-content {
+  position: relative;
   display: block;
   counter-reset: line;
+  width: 100%;
 }
 
 .item-selecionado {
@@ -268,4 +270,12 @@ body {
 }
 .projects_list {
   font-size: var(--font-global);
+}
+.line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 20px;
+  line-height: 20px;
+  white-space: pre;
 }
