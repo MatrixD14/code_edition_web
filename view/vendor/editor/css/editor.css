@@ -229,11 +229,14 @@ body {
 
 .editor,
 #highlight-layer,
-#highlight-content {
+#highlight-content,
+#line-numbers {
   font-family: var(--font-family) !important;
   font-size: var(--font-global) !important;
   line-height: 20px;
-  tab-size: 4;
+  white-space: pre !important;
+  word-wrap: normal !important;
+  overflow-wrap: normal !important;
 }
 
 .editor {
@@ -256,6 +259,12 @@ body {
   display: block;
   counter-reset: line;
   width: 100%;
+  margin: 0;
+  padding: 0;
+  /* &::after {
+    content: " ";
+    display: inline;
+  } */
 }
 
 .item-selecionado {
@@ -270,11 +279,20 @@ body {
 .projects_list {
   font-size: var(--font-global);
 }
-.line {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 20px;
-  line-height: 20px;
-  white-space: pre;
+#line-numbers {
+  min-width: 5px;
+  width: auto;
+  padding: 15px 5px 15px 5px;
+  text-align: right;
+  color: #fff;
+  overflow: hidden;
+  user-select: none;
+  pointer-events: none;
+  box-sizing: border-box;
+  border-right: 1px solid #333;
+}
+.editor-wrapper {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
 }

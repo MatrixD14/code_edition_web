@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const input = $("#code-input");
   const output = $("#highlight-content");
   const layer = $("#highlight-layer");
+  const lineNumbers = $("#line-numbers");
   const highlighterWorker = new Worker("./js/highlighter-worker.js");
 
   if (!input || !output) return;
@@ -43,11 +44,14 @@ document.addEventListener("DOMContentLoaded", () => {
     "md",
   ]);
   highlighterWorker.onmessage = function (e) {
+    if (e.data.msgId !== lastMsgId) return;
     requestAnimationFrame(() => {
-      output.innerHTML = e.data;
+      output.innerHTML = e.data.html;
     });
   };
+  let lastMsgId = 0;
   function sendToWorker() {
+    let msgId = ++lastMsgId;
     let rawValue = input.value;
 
     let fileName = input.dataset.currentFile || "";
@@ -57,17 +61,13 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    let code = rawValue
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
-
     let isXML =
       ["html", "xml", "svg", "manifest"].includes(extension) ||
       fileName.endsWith("AndroidManifest.xml");
     highlighterWorker.postMessage({
-      code: code,
+      code: rawValue,
       isXML: isXML,
+      msgId: msgId,
     });
   }
 
@@ -78,11 +78,32 @@ document.addEventListener("DOMContentLoaded", () => {
     timeout = setTimeout(sendToWorker, delay);
   });
 
+  function updateLineNumbers(text) {
+    const lines = text.split("\n").length;
+    const numbers = Array.from({ length: lines }, (_, i) => i + 1).join("\n");
+    lineNumbers.textContent = numbers;
+  }
+
+  input.addEventListener("input", () => {
+    updateLineNumbers(input.value);
+  });
+
+  const observer = new ResizeObserver(() => {
+    const rect = input.getBoundingClientRect();
+    layer.style.width = `${rect.width}px`;
+    layer.style.height = `${rect.height}px`;
+    layer.style.left = `${input.offsetLeft}px`;
+  });
+  observer.observe(input);
+
   input.addEventListener(
     "scroll",
     () => {
-      layer.scrollTop = input.scrollTop;
-      layer.scrollLeft = input.scrollLeft;
+      requestAnimationFrame(() => {
+        lineNumbers.scrollTop = input.scrollTop;
+        layer.scrollTop = input.scrollTop;
+        layer.scrollLeft = input.scrollLeft;
+      });
     },
     { passive: true }
   );

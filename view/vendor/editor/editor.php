@@ -65,8 +65,11 @@ $login->protect();
             </div>
             <div class="editor_terminal_container">
                 <div class="editor-box">
-                    <pre id="highlight-layer"><code id="highlight-content"></code></pre>
-                    <textarea class="editor" id="code-input" spellcheck="false"></textarea>
+                    <div id="line-numbers"></div>
+                    <div class="editor-wrapper">
+                        <pre id="highlight-layer"><code id="highlight-content"></code></pre>
+                        <textarea class="editor" id="code-input" spellcheck="false"></textarea>
+                    </div>
                 </div>
                 <div class="terminal-box">
                     <div class="terminal_top">
