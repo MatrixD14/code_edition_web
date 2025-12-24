@@ -12,10 +12,18 @@ const ui = {
   file_push_open: $(".file_push_open"),
 };
 //terminal.js variables
-const rootFolderName = "htdocs";
+// const rootFolderName = "htdocs";
 
-const inputTerm = $("#terminal-input");
-const outputTerm = $("#terminal-output");
-const containerTerminal = $(".terminal");
+const term = {
+  inputTerm: $("#terminal-input"),
+  outputTerm: $("#terminal-output"),
+  containerTerminal: $(".terminal"),
+};
 //update upload path editor
 const inputUpload = $("#upload_projeto");
+//config system variables
+const config = {
+  configSettings: $(".config_settings"),
+  painelConfig: $(".painel-config"),
+  closeConfig: $("#close_config"),
+};

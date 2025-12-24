@@ -252,12 +252,15 @@ body {
 #highlight-layer {
   z-index: 1;
   pointer-events: none;
+  position: absolute;
   color: #fff;
   overflow: hidden;
 }
 #highlight-content {
   display: block;
   counter-reset: line;
+  position: relative;
+  will-change: transform;
   width: 100%;
   margin: 0;
   padding: 0;

@@ -6,7 +6,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const layer = $("#highlight-layer");
   const lineNumbers = $("#line-numbers");
   const highlighterWorker = new Worker("./js/highlighter-worker.js");
-  let lastMsgId = 0;
+  let timeout,
+    lastMsgId = 0;
 
   if (!input || !output) return;
   const extensionBloqueio = new Set([
@@ -72,7 +73,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  let timeout;
   input.addEventListener("input", () => {
     clearTimeout(timeout);
     let delay = input.value.length > 25000 ? 200 : 50;

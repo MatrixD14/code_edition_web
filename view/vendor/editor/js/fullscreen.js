@@ -1,11 +1,11 @@
 function entrarTelaCheia() {
-  const isFullscreen =
+  let isFullscreen =
     document.fullscreenElement ||
     document.webkitFullscreenElement ||
     document.msFullscreenElement;
 
   if (!isFullscreen) {
-    const elem = document.documentElement;
+    let elem = document.documentElement;
     if (elem.requestFullscreen) {
       elem.requestFullscreen();
     } else if (elem.webkitRequestFullscreen) {
@@ -29,7 +29,7 @@ document
 
 if (window.visualViewport) {
   window.visualViewport.addEventListener("resize", () => {
-    const viewHeight = window.visualViewport.height;
+    let viewHeight = window.visualViewport.height;
     document.body.style.height = viewHeight + "px";
     scrollToBottom();
   });

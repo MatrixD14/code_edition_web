@@ -1,9 +1,8 @@
-// const $ = (q) => document.querySelector(q);
 let terminalCWD = "";
 
 function scrollToBottom() {
-  if (containerTerminal) {
-    containerTerminal.scrollTop = containerTerminal.scrollHeight;
+  if (term.containerTerminal) {
+    term.containerTerminal.scrollTop = term.containerTerminal.scrollHeight;
   }
 }
 
@@ -22,10 +21,10 @@ function getRelativePath(fullPath) {
 let display_terminal = $(".terminal-body"),
   terminal_toggle = $(".terminal_btn");
 
-inputTerm.addEventListener("keydown", async (e) => {
+term.inputTerm.addEventListener("keydown", async (e) => {
   if (e.key === "Tab") {
     e.preventDefault();
-    const fullText = inputTerm.value;
+    const fullText = term.inputTerm.value;
     const commandSegments = fullText.split(/[&|;]/);
     const lastCommandSegment = commandSegments[commandSegments.length - 1];
     const words = lastCommandSegment.trimStart().split(" ");
@@ -57,9 +56,9 @@ inputTerm.addEventListener("keydown", async (e) => {
       const suggestions = await response.json();
 
       if (suggestions.length === 1) {
-        inputTerm.value = textBeforePartial + suggestions[0];
+        term.inputTerm.value = textBeforePartial + suggestions[0];
       } else if (suggestions.length > 1) {
-        outputTerm.innerHTML += `<div style="color: #999; font-size: 0.8em;">${suggestions.join(
+        term.outputTerm.innerHTML += `<div style="color: #999; font-size: 0.8em;">${suggestions.join(
           "   "
         )}</div>`;
         scrollToBottom();
@@ -71,20 +70,20 @@ inputTerm.addEventListener("keydown", async (e) => {
   }
 
   if (e.key === "Enter") {
-    const cmd = inputTerm.value.trim();
+    const cmd = term.inputTerm.value.trim();
     if (!cmd) return;
 
     if (cmd === "clear") {
-      outputTerm.innerHTML = "";
-      inputTerm.value = "";
+      term.outputTerm.innerHTML = "";
+      term.inputTerm.value = "";
       return;
     }
 
     let effectiveCWD = window.terminalCWD || terminalCWD || "";
 
     const pathPrompt = getRelativePath(terminalCWD);
-    outputTerm.innerHTML += `<div><span style="color:#56b6c2">user@android:${pathPrompt} $</span> ${cmd}</div>`;
-    inputTerm.value = "";
+    term.outputTerm.innerHTML += `<div><span style="color:#56b6c2">user@android:${pathPrompt} $</span> ${cmd}</div>`;
+    term.inputTerm.value = "";
 
     try {
       const response = await fetch("../../../../model/terminal/terminal.php", {
@@ -109,20 +108,20 @@ inputTerm.addEventListener("keydown", async (e) => {
         pre.className = "terminal-line";
         pre.style.whiteSpace = "pre-wrap";
         pre.textContent = res.output;
-        outputTerm.appendChild(pre);
+        term.outputTerm.appendChild(pre);
       }
     } catch (err) {
-      outputTerm.innerHTML += `<div style="color:red">Erro crítico: Verifique a conexão com o terminal.php</div>`;
+      term.outputTerm.innerHTML += `<div style="color:red">Erro crítico: Verifique a conexão com o terminal.php</div>`;
       terminalCWD = "";
       window.terminalCWD = "";
       console.error("Erro no terminal:", err);
     }
     scrollToBottom();
-    inputTerm.focus();
+    term.inputTerm.focus();
   }
 });
 terminal_toggle.addEventListener("click", () => {
   const isHidden = display_terminal.classList.contains("hidden");
   display_terminal.classList.toggle("hidden");
-  if (isHidden) inputTerm.focus();
+  if (isHidden) term.inputTerm.focus();
 });

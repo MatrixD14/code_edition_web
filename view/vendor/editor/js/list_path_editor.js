@@ -12,7 +12,7 @@ ui.file_push_open.addEventListener(
 ui.btnOpenProject.addEventListener("click", async (e) => {
   e.stopPropagation();
   ui.projectSelector.classList.toggle("hidden");
-  painelConfig.classList.add("hidden");
+  config.painelConfig.classList.add("hidden");
 
   const r = await fetch("../../../model/editor/list_path.php");
   const items = await r.json();
