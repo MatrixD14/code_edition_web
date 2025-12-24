@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const layer = $("#highlight-layer");
   const lineNumbers = $("#line-numbers");
   const highlighterWorker = new Worker("./js/highlighter-worker.js");
+  let lastMsgId = 0;
 
   if (!input || !output) return;
   const extensionBloqueio = new Set([
@@ -49,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
       output.innerHTML = e.data.html;
     });
   };
-  let lastMsgId = 0;
+
   function sendToWorker() {
     let msgId = ++lastMsgId;
     let rawValue = input.value;

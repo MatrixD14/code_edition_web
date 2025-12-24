@@ -11,7 +11,7 @@ $command = $data['command'] ?? '';
 $currentDir = !empty($data['cwd']) ? $data['cwd'] : realpath(HTDOC);
 if (empty($command)) exit;
 
-$danger_patterns = ['rm -rf /', 'rm -rf *', 'rm -rf ./*', 'rm -rf /*', 'mkfs', ':(){ :|:& };:', '> /dev/sda'];
+$danger_patterns = ['rm -rf /', 'rm -rf *', 'rm -rf ./*', 'rm -rf /*', 'mkfs', ':(){ :|:& };:', '> /dev/sda','>> /dev/sda','dd if=','dd of=','rm -rf --no-preserve-root /', 'rm -rf --no-preserve-root *', 'rm -rf --no-preserve-root ./*', 'rm -rf --no-preserve-root /*','cd $HOME','cd ~', 'mv /', 'mv *', 'mv ./*', 'mv /*', 'mv --no-preserve-root /', 'mv --no-preserve-root *', 'mv --no-preserve-root ./*', 'mv --no-preserve-root /*'];
 
 $forbidden_executables = ['sudo', 'apt', 'su', 'shutdown', 'reboot', 'chmod', 'chown', 'ufw','dd','mkfs','nano','vim','vi','less','more','top','htop','watch','php -S','node','npm','yarn','python -m','serve','http-server','sleep','ssh', 'pwd'];
 
