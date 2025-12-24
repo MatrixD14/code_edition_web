@@ -10,6 +10,9 @@ if (!$path || !is_file($path) || strpos($path, realpath(HTDOC)) !== 0) {
     exit;
 }
 
+if (ob_get_level()) ob_end_clean();
+
 header('Content-Type: text/plain');
-$content = file_get_contents($path);
-echo $content;
+header('Content-Length: ' . filesize($path));
+readfile($path);
+exit;

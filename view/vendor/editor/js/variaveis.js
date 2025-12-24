@@ -12,8 +12,6 @@ const ui = {
   file_push_open: $(".file_push_open"),
 };
 //terminal.js variables
-// const rootFolderName = "htdocs";
-
 const term = {
   inputTerm: $("#terminal-input"),
   outputTerm: $("#terminal-output"),
@@ -27,3 +25,34 @@ const config = {
   painelConfig: $(".painel-config"),
   closeConfig: $("#close_config"),
 };
+
+function restEditor() {
+  let input = $("#code-input");
+  let highlight = $("#highlight-content");
+  let lineNumbers = $("#line-numbers");
+  let nomeDiretorioDisplay = $(".nome_diretory");
+
+  if (input) {
+    input.value = "";
+    input.dataset.currentFile = "";
+    input.scrollTop = 0;
+    input.scrollLeft = 0;
+  }
+
+  if (highlight) {
+    highlight.textContent = "";
+    let layer = $("#highlight-layer");
+    if (layer) {
+      layer.scrollTop = 0;
+      layer.scrollLeft = 0;
+    }
+  }
+
+  if (lineNumbers) {
+    lineNumbers.textContent = "1";
+    lineNumbers.scrollTop = 0;
+  }
+
+  if (nomeDiretorioDisplay)
+    nomeDiretorioDisplay.textContent = "Nenhum arquivo aberto";
+}

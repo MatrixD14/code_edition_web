@@ -225,6 +225,8 @@ body {
   white-space: pre;
   word-wrap: normal;
   box-sizing: border-box;
+  will-change: scroll-position;
+  contain: strict;
 }
 
 .editor,
@@ -280,7 +282,7 @@ body {
 }
 #line-numbers {
   min-width: 5px;
-  width: auto;
+  /* width: auto; */
   padding: 15px 5px 15px 5px;
   text-align: right;
   color: #fff;

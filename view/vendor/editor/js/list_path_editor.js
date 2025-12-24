@@ -16,7 +16,6 @@ ui.btnOpenProject.addEventListener("click", async (e) => {
 
   const r = await fetch("../../../model/editor/list_path.php");
   const items = await r.json();
-
   ui.projectsList.innerHTML = items
     .filter((item) => item.type === "dir")
     .map((item) => `<li data-path="${item.path}">📂 ${item.name}</li>`)
@@ -27,8 +26,10 @@ ui.projectsList.addEventListener("click", (e) => {
   const li = e.target.closest("li");
   if (!li) return;
 
-  const projectPath = li.dataset.path,
+  let projectPath = li.dataset.path,
     projectName = li.textContent;
+
+  restEditor();
 
   if (typeof sincronizarTerminalComProjeto === "function")
     sincronizarTerminalComProjeto(projectPath);
@@ -104,6 +105,10 @@ async function loadSubDir(dirPath, container) {
 }
 
 async function openFile(path) {
+  const input = $("#code-input"),
+    highlight = $("#highlight-content");
+
+  if (highlight) highlight.innerHTML = "Carregando...";
   try {
     const response = await fetch(
       `../../../model/editor/read_file.php?file=${encodeURIComponent(path)}`
@@ -111,7 +116,6 @@ async function openFile(path) {
     state.currentSelectedFolder = path.substring(0, path.lastIndexOf("/"));
     const text = await response.text();
 
-    const input = $("#code-input");
     if (input) {
       input.value = text;
       input.dataset.currentFile = path;
@@ -225,6 +229,7 @@ function sincronizarTerminalComProjeto(path) {
 }
 
 $("#btn-delete").addEventListener("click", async () => {
+  let input = $("#code-input");
   if (!currentSelectedPath) {
     alert("Selecione um arquivo ou pasta para deletar.");
     return;
@@ -245,11 +250,24 @@ $("#btn-delete").addEventListener("click", async () => {
 
     if (result.status === "success") {
       alert("Deletado com sucesso!");
+      let pathLimpo = currentSelectedPath.replace(/^\/|\/$/g, ""),
+        fileAbertoLimpo = (input.dataset.currentFile || "").replace(
+          /^\/|\/$/g,
+          ""
+        );
+      if (
+        fileAbertoLimpo === pathLimpo ||
+        fileAbertoLimpo.startsWith(pathLimpo + "/")
+      )
+        restEditor();
+
       currentSelectedPath = "";
+      initProjectTree(state.currentProjectRoot);
       if (typeof listFiles === "function") listFiles();
     } else alert("Erro: " + result.message);
   } catch (err) {
-    alert("Erro ao deletar.");
+    console.error("Erro ao deletar:", err);
+    alert("Erro na conexão ao deletar.");
   }
 });
 
@@ -281,7 +299,7 @@ async function renameResource() {
       const liAtiva = $(".item-selecionado");
       if (liAtiva) {
         const icon = liAtiva.classList.contains("dir") ? "📁" : "📄";
-        liAtiva.innerHTML = `${icon} ${newName}`;
+        liAtiva.textContent = `${icon} ${newName}`;
 
         const parentPath = currentSelectedPath.substring(
           0,
