@@ -108,7 +108,7 @@ async function openFile(path) {
   const input = $("#code-input"),
     highlight = $("#highlight-content");
 
-  if (highlight) highlight.innerHTML = "Carregando...";
+  if (highlight) highlight.textContent = "Carregando...";
   try {
     const response = await fetch(
       `../../../model/editor/read_file.php?file=${encodeURIComponent(path)}`
@@ -159,9 +159,19 @@ ui.btnSalvar.addEventListener("click", async () => {
     alert("Erro na conexão.");
   }
 });
+async function refreshFolder(path) {
+  const li = $(`li[data-path="${path}"]`);
+  if (!li) return initProjectTree(state.currentProjectRoot);
 
+  let containersAntigos = li.querySelectorAll("div, ul");
+  containersAntigos.forEach((el) => el.remove());
+  let novoContainer = document.createElement("div");
+  li.appendChild(novoContainer);
+  li.dataset.open = "1";
+  await loadSubDir(path, novoContainer);
+}
 async function createResource(type) {
-  const targetDir = state.currentSelectedFolder || state.currentProjectRoot;
+  let targetDir = state.currentSelectedFolder || state.currentProjectRoot;
 
   if (!targetDir) {
     alert("Por favor, abra um projeto primeiro!");
@@ -179,19 +189,18 @@ async function createResource(type) {
       body: JSON.stringify({
         type: type,
         name: name,
-        parentDir: state.currentSelectedFolder,
+        parentDir: targetDir,
       }),
     });
 
     const result = await response.json();
     if (result.status === "success") {
       alert("Criado com sucesso!");
-      const liAtiva = $(".item-selecionado");
-      if (liAtiva && liAtiva.classList.contains("dir")) {
-        liAtiva.dataset.open = "1";
-        toggleDir(liAtiva);
-        toggleDir(liAtiva);
-      } else initProjectTree(state.currentProjectRoot);
+      if (targetDir === state.currentProjectRoot) {
+        await initProjectTree(state.currentProjectRoot);
+      } else {
+        await refreshFolder(targetDir);
+      }
     } else {
       alert("Erro: " + result.message);
     }
@@ -199,6 +208,7 @@ async function createResource(type) {
     console.error(err);
   }
 }
+
 function selecionarItem(elemento, caminho) {
   document.querySelectorAll(".path_display li").forEach((el) => {
     el.classList.remove("item-selecionado");
@@ -250,6 +260,10 @@ $("#btn-delete").addEventListener("click", async () => {
 
     if (result.status === "success") {
       alert("Deletado com sucesso!");
+      let parentPath = currentSelectedPath.substring(
+        0,
+        currentSelectedPath.lastIndexOf("/")
+      );
       let pathLimpo = currentSelectedPath.replace(/^\/|\/$/g, ""),
         fileAbertoLimpo = (input.dataset.currentFile || "").replace(
           /^\/|\/$/g,
@@ -262,7 +276,8 @@ $("#btn-delete").addEventListener("click", async () => {
         restEditor();
 
       currentSelectedPath = "";
-      initProjectTree(state.currentProjectRoot);
+      if (parentPath) refreshFolder(parentPath);
+      else initProjectTree(state.currentProjectRoot);
       if (typeof listFiles === "function") listFiles();
     } else alert("Erro: " + result.message);
   } catch (err) {
@@ -320,6 +335,31 @@ async function renameResource() {
   }
 }
 
+window.addEventListener("keydown", (e) => {
+  if (e.ctrlKey && e.key === "s") {
+    e.preventDefault();
+    ui.btnSalvar.click();
+  }
+
+  if (e.key === "Delete" && document.activeElement.id !== "code-input") {
+    if (currentSelectedPath) $("#btn-delete").click();
+  }
+
+  if (e.ctrlKey && e.key === "b") {
+    e.preventDefault();
+    ui.file_push_open.click();
+  }
+  if (e.key === "F2") {
+    e.preventDefault();
+    renameResource();
+  }
+  if (e.key === "N") {
+    createResource("folder");
+  }
+  if (e.key === "M") {
+    createResource("file");
+  }
+});
 $("#btn_rename").addEventListener("click", renameResource);
 $("#criar_file").addEventListener("click", () => createResource("file"));
 $("#criar_dir").addEventListener("click", () => createResource("folder"));

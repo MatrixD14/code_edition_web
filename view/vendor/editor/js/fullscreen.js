@@ -26,7 +26,11 @@ function entrarTelaCheia() {
 document
   .getElementById("btn_fullscreen")
   .addEventListener("click", entrarTelaCheia);
-
+window.addEventListener("keydown", (e) => {
+  if (e.key === "F") {
+    entrarTelaCheia();
+  }
+});
 if (window.visualViewport) {
   window.visualViewport.addEventListener("resize", () => {
     let viewHeight = window.visualViewport.height;

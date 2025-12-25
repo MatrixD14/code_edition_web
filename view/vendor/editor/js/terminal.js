@@ -125,3 +125,9 @@ terminal_toggle.addEventListener("click", () => {
   display_terminal.classList.toggle("hidden");
   if (isHidden) term.inputTerm.focus();
 });
+window.addEventListener("keydown", (e) => {
+  if (e.ctrlKey && e.key === '"') {
+    e.preventDefault();
+    terminal_toggle.click();
+  }
+});

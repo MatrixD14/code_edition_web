@@ -18,12 +18,12 @@ $login->protect();
     <body >
         <nav class="top">
             <a href="../../../controller/login/logout.php"><?=$_SESSION["nome"]?></a>
-            <a id="btn_fullscreen" title="Tela Cheia">⛶</a>
+            <a id="btn_fullscreen" title="Tela Cheia (shift+F)">⛶</a>
         </nav>
         <div class="box-editor">
             <div class="path_menu">
                 <ul class="menu_top">
-                    <li class="file_push_open" title="Abrir Arquivo">📄</li>
+                    <li class="file_push_open" title="Abrir Arquivo (ctrl+b)">📄</li>
                     <li title="Open Projeto">
                         <label for="open_file" id="btn_open_project" style="cursor:pointer;">📁</label>
                     </li> 
@@ -52,11 +52,11 @@ $login->protect();
         <div class="painel_path">
             <div class="mune_select_file_dir">
                 <p class="nome_diretory"></p>
-                <a id="btn_rename" title="Renomear">✏️</a>
-                <a id="criar_file" title="criar file">📄</a>
-                <a id="criar_dir" title="criar dir">📁</a>
-                <a id="btn-delete" title="Deletar">🗑️</a>
-                <a id="salvar" title="Salvar">💾</a>
+                <a id="btn_rename" title="Renomear (F2)">✏️</a>
+                <a id="criar_file" title="criar file (shift+M)">📄</a>
+                <a id="criar_dir" title="criar dir (shift+N)">📁</a>
+                <a id="btn-delete" title="Deletar (Delete)">🗑️</a>
+                <a id="salvar" title="Salvar (ctrl+s)">💾</a>
             </div>
             <div class="path_display">
                 <ul>
@@ -73,19 +73,19 @@ $login->protect();
                 </div>
                 <div class="terminal-box">
                     <div class="terminal_top">
-                        <button class="terminal_btn">Terminal</button>
+                        <button class="terminal_btn" title="Terminal (ctrl+shift+'')">Terminal</button>
+                    </div>
+                    <div class="terminal-body">
+                        <div class="terminal">
+                            <div class="terminal-text" id="terminal-output"></div>
                         </div>
-                        <div class="terminal-body">
-                    <div class="terminal">
-                        <div class="terminal-text" id="terminal-output"></div>
-                    </div>
-                    <div class="terminal_input_button">
-                        <input type="text" class="terminal_input" id="terminal-input" placeholder="type a command" />
-                    </div>
-                </div>
+                        <div class="terminal_input_button">
+                            <input type="text" class="terminal_input" id="terminal-input" placeholder="type a command" />
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
                 
                 <script src="./js/variaveis.js"></script>
                 <script src="./js/conf_system.js"></script>
