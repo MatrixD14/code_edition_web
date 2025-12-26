@@ -10,6 +10,7 @@ const ui = {
   nomeDiretorioDisplay: $(".nome_diretory"),
   painel_path: $(".painel_path"),
   file_push_open: $(".file_push_open"),
+  input: $("#code-input"),
 };
 //terminal.js variables
 const term = {

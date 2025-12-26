@@ -341,7 +341,11 @@ window.addEventListener("keydown", (e) => {
     ui.btnSalvar.click();
   }
 
-  if (e.key === "Delete" && document.activeElement.id !== "code-input") {
+  if (
+    e.ctrlKey &&
+    e.key === "Delete" &&
+    document.activeElement.id !== "code-input"
+  ) {
     if (currentSelectedPath) $("#btn-delete").click();
   }
 
@@ -353,10 +357,10 @@ window.addEventListener("keydown", (e) => {
     e.preventDefault();
     renameResource();
   }
-  if (e.key === "N") {
+  if (e.ctrlKey && e.key === "D") {
     createResource("folder");
   }
-  if (e.key === "M") {
+  if (e.ctrlKey && e.key === "E") {
     createResource("file");
   }
 });

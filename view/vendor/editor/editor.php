@@ -30,8 +30,9 @@ $login->protect();
                     <li title="Upload Projeto">
                         <label for="upload_projeto" id="btn_upload_projeto" style="cursor:pointer;">⬆️</label>
                         <input type="file" id="upload_projeto" name="file[]" webkitdirectory directory multiple style="display:none;">
-                </li>
-            </ul>
+                    </li>
+                    
+                </ul>
             <ul class="menu_bottom">
                 <li title="Configurações" class="config_settings">⚙️</li>
             </ul>
@@ -57,6 +58,7 @@ $login->protect();
                 <a id="criar_dir" title="criar dir (shift+N)">📁</a>
                 <a id="btn-delete" title="Deletar (Delete)">🗑️</a>
                 <a id="salvar" title="Salvar (ctrl+s)">💾</a>
+                <a id="btn-open-preview" title="Preview Android Layout">📱</a>
             </div>
             <div class="path_display">
                 <ul>
@@ -94,5 +96,6 @@ $login->protect();
         <script src="./js/upload_path_editor.js"></script>
         <script src="./js/terminal.js"></script>
         <script src="./js/fullscreen.js"></script>
+        <script src="./js/preview/preview.js"></script>
     </body>
 </html>

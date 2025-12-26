@@ -27,7 +27,7 @@ document
   .getElementById("btn_fullscreen")
   .addEventListener("click", entrarTelaCheia);
 window.addEventListener("keydown", (e) => {
-  if (e.key === "F") {
+  if (e.ctrlKey && e.key === "F") {
     entrarTelaCheia();
   }
 });
