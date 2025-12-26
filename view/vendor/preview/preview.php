@@ -1,15 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/preview.css">
     <title>Android XML Preview</title>
-    <style>
-        body { background: #222; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .smartphone { 
-            width: 360px; height: 640px; background: white; 
-            border: 12px solid #000; border-radius: 24px; overflow: hidden; position: relative;
-        }
-        
-    </style>
 </head>
 <body>
     <div class="smartphone" id="screen">
