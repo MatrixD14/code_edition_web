@@ -48,19 +48,16 @@ async function carregarRecursos(projectRoot) {
       return new DOMParser().parseFromString(await r.text(), "text/xml");
     };
 
-    // Cores
     const docColors = await fetchXML("/res/values/colors.xml");
     for (let c of docColors.getElementsByTagName("color")) {
       colorsCache[`@color/${c.getAttribute("name")}`] = c.textContent.trim();
     }
 
-    // Strings
     const docStrings = await fetchXML("/res/values/strings.xml");
     for (let s of docStrings.getElementsByTagName("string")) {
       stringsCache[`@string/${s.getAttribute("name")}`] = s.textContent.trim();
     }
 
-    // Styles (Novo)
     const docStyles = await fetchXML("/res/values/styles.xml");
     for (let s of docStyles.getElementsByTagName("style")) {
       let name = s.getAttribute("name");
@@ -116,23 +113,28 @@ function renderizar(xmlString) {
 
 function aplicarAtributo(el, attr, value) {
   if (!value) return;
+  let toPx = (val) => {
+    if (typeof val !== 'string') return val;
+    return val.replace(/dp|sp/g, "px");
+  };
 
   switch (attr) {
     case "android:layout_width":
       if (value === "match_parent") el.style.width = "100%";
+      else if (value === "wrap_content") el.style.width = "auto";
       else if (value === "0dp") el.style.width = "0px";
-      else if (value.includes("dp")) el.style.width = value.replace("dp", "px");
+      else el.style.width = toPx(value);
       break;
     case "android:layout_height":
       if (value === "match_parent") el.style.height = "100%";
-      else if (value.includes("dp"))
-        el.style.height = value.replace("dp", "px");
+      else if (value === "wrap_content") el.style.height = "auto";
+      else el.style.height = toPx(value);
       break;
     case "android:layout_weight":
       el.style.flex = value;
       break;
     case "android:textSize":
-      el.style.fontSize = value.replace("sp", "px");
+      el.style.fontSize = toPx(value);
       break;
     case "android:background":
       el.style.backgroundColor = obterValor(value);
@@ -140,14 +142,66 @@ function aplicarAtributo(el, attr, value) {
     case "android:textColor":
       el.style.color = obterValor(value);
       break;
-    case "android:gravity":
-      if (value === "center") {
+      case "android:gravity":
+      el.style.display = "flex";
+      if (value.includes("center")) {
         el.style.justifyContent = "center";
         el.style.alignItems = "center";
-      } else if (value === "end" || value === "right") {
+        el.style.textAlign = "center";
+      }
+      if (value.includes("end") || value.includes("right")) {
         el.style.justifyContent = "flex-end";
+        el.style.textAlign = "right";
       }
       break;
+      case "android:layout_gravity":
+      el.style.display = "flex"; 
+      if (value === "center" || value === "center_horizontal") {
+         el.style.marginLeft = "auto";
+  	 el.style.marginRight = "auto";
+      } else if (value === "end" || value === "right") {
+    el.style.marginLeft = "auto";
+    el.style.marginRight = "0";
+      } else if (value === "start" || value === "left") {
+         el.style.marginLeft = "0";
+         el.style.marginRight = "auto";
+      }
+      break;
+      case "android:layout_margin":
+      el.style.margin = toPx(value);
+      break;
+    case "android:layout_marginTop":
+      el.style.marginTop = toPx(value);
+      break;
+    case "android:layout_marginBottom":
+      el.style.marginBottom = toPx(value);
+      break;
+    case "android:layout_marginStart":
+    case "android:layout_marginLeft":
+      el.style.marginLeft = toPx(value);
+      break;
+    case "android:layout_marginEnd":
+    case "android:layout_marginRight":
+      el.style.marginRight = toPx(value);
+      break;
+      case "android:padding":
+      el.style.padding = toPx(value);
+      break;
+    case "android:paddingTop":
+      el.style.paddingTop = toPx(value);
+      break;
+    case "android:paddingBottom":
+      el.style.paddingBottom = toPx(value);
+      break;
+    case "android:paddingStart":
+    case "android:paddingLeft":
+      el.style.paddingLeft = toPx(value);
+      break;
+    case "android:paddingEnd":
+    case "android:paddingRight":
+      el.style.paddingRight = toPx(value);
+      break;
+      
     case "android:textStyle":
       if (value === "bold") el.style.fontWeight = "bold";
       break;
@@ -188,6 +242,10 @@ function converter(node) {
   } else {
     el = document.createElement("div");
   }
+
+  if (node.getAttribute("android:layout_weight")) {
+      el.style.flexBasis = "0px";
+      el.style.flexGrow = node.getAttribute("android:layout_weight");  }
 
   let styleAttr = node.getAttribute("style");
   if (styleAttr) aplicarEstilo(el, styleAttr);
