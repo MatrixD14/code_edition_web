@@ -147,25 +147,30 @@ function aplicarAtributo(el, attr, value) {
       if (value.includes("center")) {
         el.style.justifyContent = "center";
         el.style.alignItems = "center";
-        el.style.textAlign = "center";
       }
-      if (value.includes("end") || value.includes("right")) {
-        el.style.justifyContent = "flex-end";
-        el.style.textAlign = "right";
-      }
+      if (value.includes("center_vertical")) el.style.alignItems = "center";
+      if (value.includes("center_horizontal")) el.style.justifyContent = "center";
+      if (value.includes("right") || value.includes("end")) el.style.justifyContent = "flex-end";
+      if (value.includes("left") || value.includes("start")) el.style.justifyContent = "flex-start";
+      if (value.includes("bottom")) el.style.alignItems = "flex-end";
+      if (value.includes("top")) el.style.alignItems = "flex-start";
       break;
       case "android:layout_gravity":
-      el.style.display = "flex"; 
       if (value === "center" || value === "center_horizontal") {
          el.style.marginLeft = "auto";
   	 el.style.marginRight = "auto";
-      } else if (value === "end" || value === "right") {
-    el.style.marginLeft = "auto";
-    el.style.marginRight = "0";
-      } else if (value === "start" || value === "left") {
-         el.style.marginLeft = "0";
-         el.style.marginRight = "auto";
       }
+      if (value.includes("center_vertical") || value === "center") {
+        el.style.alignSelf = "center";
+      }
+      if (value.includes("right") || value.includes("end")) {
+        el.style.marginLeft = "auto";
+      }
+      if (value.includes("left") || value.includes("start")) {
+        el.style.marginRight = "auto";
+      }
+      if (value.includes("bottom")) el.style.alignSelf = "flex-end";
+      if (value.includes("top")) el.style.alignSelf = "flex-start";
       break;
       case "android:layout_margin":
       el.style.margin = toPx(value);
@@ -222,12 +227,12 @@ function aplicarEstilo(el, styleName) {
 function converter(node) {
   let el;
   let tag = node.tagName;
+  let orientation = node.getAttribute("android:orientation") || "horizontal";
   if (tag === "LinearLayout") {
     el = document.createElement("div");
     el.style.display = "flex";
     el.style.boxSizing = "border-box";
-    el.style.flexDirection =
-      node.getAttribute("android:orientation") === "vertical"
+    el.style.flexDirection =orientation === "vertical"
         ? "column"
         : "row";
   } else if (tag === "TextView" || tag === "Button") {
@@ -238,14 +243,20 @@ function converter(node) {
     if (tag === "Button") {
       el.style.border = "1px solid #ddd";
       el.style.cursor = "pointer";
+      el.style.backgroundColor = "#e0e0e0"
     }
   } else {
     el = document.createElement("div");
+    el.style.display = "flex";
+    el.style.boxSizing = "border-box";
   }
 
-  if (node.getAttribute("android:layout_weight")) {
-      el.style.flexBasis = "0px";
-      el.style.flexGrow = node.getAttribute("android:layout_weight");  }
+  let weight = node.getAttribute("android:layout_weight");
+  if (weight) {
+    el.style.flexGrow = weight;
+    el.style.flexShrink = "1";
+    el.style.flexBasis = "0px";
+  }
 
   let styleAttr = node.getAttribute("style");
   if (styleAttr) aplicarEstilo(el, styleAttr);
