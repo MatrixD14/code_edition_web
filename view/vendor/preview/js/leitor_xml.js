@@ -1,5 +1,5 @@
-const screen = document.getElementById("screen");
-const channel = new BroadcastChannel("android_preview");
+let screen = document.getElementById("screen");
+let channel = new BroadcastChannel("android_preview");
 
 let stringsCache = {};
 let colorsCache = {};
@@ -7,7 +7,7 @@ let stylesCache = {};
 let currentProject = "";
 
 channel.onmessage = async (event) => {
-  const { xml, projectRoot } = event.data;
+  let { xml, projectRoot } = event.data;
 
   if (projectRoot && projectRoot !== currentProject) {
     currentProject = projectRoot;
@@ -18,20 +18,16 @@ channel.onmessage = async (event) => {
 };
 function renderizar(xmlString) {
   if (!xmlString) return;
-
-  const parser = new DOMParser();
-  const xmlDoc = parser.parseFromString(xmlString, "text/xml");
-
-  const errorNode = xmlDoc.getElementsByTagName("parsererror");
+  let parser = new DOMParser();
+  let xmlDoc = parser.parseFromString(xmlString, "text/xml");
+  let errorNode = xmlDoc.getElementsByTagName("parsererror");
   if (errorNode.length > 0) {
     console.error("Erro no XML:", errorNode[0].textContent);
     screen.innerHTML = `<div style="color:red; padding:10px;">Erro de sintaxe no XML</div>`;
     return;
   }
-
   screen.textContent = "";
-  const root = xmlDoc.documentElement;
-
+  let root = xmlDoc.documentElement;
   if (root) {
     console.log("Renderizando tag raiz:", root.tagName);
     screen.appendChild(converter(root));
@@ -39,8 +35,8 @@ function renderizar(xmlString) {
 }
 async function carregarRecursos(projectRoot) {
   try {
-    const fetchXML = async (path) => {
-      const r = await fetch(
+    let fetchXML = async (path) => {
+      let r = await fetch(
         `../../../model/editor/read_file.php?file=${encodeURIComponent(
           projectRoot + path
         )}`
@@ -48,32 +44,44 @@ async function carregarRecursos(projectRoot) {
       return new DOMParser().parseFromString(await r.text(), "text/xml");
     };
 
-    const docColors = await fetchXML("/res/values/colors.xml");
-    for (let c of docColors.getElementsByTagName("color")) {
-      colorsCache[`@color/${c.getAttribute("name")}`] = c.textContent.trim();
-    }
-
-    const docStrings = await fetchXML("/res/values/strings.xml");
-    for (let s of docStrings.getElementsByTagName("string")) {
-      stringsCache[`@string/${s.getAttribute("name")}`] = s.textContent.trim();
-    }
-
-    const docStyles = await fetchXML("/res/values/styles.xml");
-    for (let s of docStyles.getElementsByTagName("style")) {
-      let name = s.getAttribute("name");
-      stylesCache[name] = {
-        parent: s.getAttribute("parent"),
-        items: {},
-      };
-      for (let item of s.getElementsByTagName("item")) {
-        stylesCache[name].items[item.getAttribute("name")] =
-          item.textContent.trim();
+    try {
+      let docColors = await fetchXML("/res/values/colors.xml");
+      for (let c of docColors.getElementsByTagName("color")) {
+        colorsCache[`@color/${c.getAttribute("name")}`] = c.textContent.trim();
       }
+    } catch (e) {
+      console.warn("colors.xml não encontrado");
     }
 
-    console.log("Recursos sincronizados");
+    try {
+      let docStrings = await fetchXML("/res/values/strings.xml");
+      for (let s of docStrings.getElementsByTagName("string")) {
+        stringsCache[`@string/${s.getAttribute("name")}`] =
+          s.textContent.trim();
+      }
+    } catch (e) {
+      console.warn("strings.xml não encontrado");
+    }
+
+    try {
+      let docStyles = await fetchXML("/res/values/styles.xml");
+      for (let s of docStyles.getElementsByTagName("style")) {
+        let name = s.getAttribute("name");
+        stylesCache[name] = {
+          parent: s.getAttribute("parent"),
+          items: {},
+        };
+        for (let item of s.getElementsByTagName("item")) {
+          stylesCache[name].items[item.getAttribute("name")] =
+            item.textContent.trim();
+        }
+      }
+    } catch (e) {
+      console.warn("styles.xml não encontrado");
+    }
+    console.log("Recursos sincronizados com sucesso");
   } catch (e) {
-    console.warn("Aviso: Falha ao carregar alguns recursos.");
+    console.error("Falha crítica ao sincronizar recursos:", e);
   }
 }
 
@@ -87,6 +95,7 @@ function obterValor(attr) {
     return cor;
   }
   if (attr.startsWith("@string/")) return stringsCache[attr] || attr;
+
   return attr;
 }
 function renderizar(xmlString) {
@@ -114,7 +123,7 @@ function renderizar(xmlString) {
 function aplicarAtributo(el, attr, value) {
   if (!value) return;
   let toPx = (val) => {
-    if (typeof val !== 'string') return val;
+    if (typeof val !== "string") return val;
     return val.replace(/dp|sp/g, "px");
   };
 
@@ -142,37 +151,42 @@ function aplicarAtributo(el, attr, value) {
     case "android:textColor":
       el.style.color = obterValor(value);
       break;
-      case "android:gravity":
+    case "android:gravity":
       el.style.display = "flex";
       if (value.includes("center")) {
         el.style.justifyContent = "center";
         el.style.alignItems = "center";
       }
       if (value.includes("center_vertical")) el.style.alignItems = "center";
-      if (value.includes("center_horizontal")) el.style.justifyContent = "center";
-      if (value.includes("right") || value.includes("end")) el.style.justifyContent = "flex-end";
-      if (value.includes("left") || value.includes("start")) el.style.justifyContent = "flex-start";
+
+      if (value.includes("center_horizontal"))
+        el.style.justifyContent = "center";
+
+      if (value.includes("end") || value.includes("right"))
+        el.style.justifyContent = "flex-end";
+
+      if (value.includes("start") || value.includes("left"))
+        el.style.justifyContent = "flex-start";
       if (value.includes("bottom")) el.style.alignItems = "flex-end";
+
       if (value.includes("top")) el.style.alignItems = "flex-start";
       break;
-      case "android:layout_gravity":
+    case "android:layout_gravity":
+      el.style.display = "flex";
       if (value === "center" || value === "center_horizontal") {
-         el.style.marginLeft = "auto";
-  	 el.style.marginRight = "auto";
-      }
-      if (value.includes("center_vertical") || value === "center") {
-        el.style.alignSelf = "center";
-      }
-      if (value.includes("right") || value.includes("end")) {
         el.style.marginLeft = "auto";
-      }
-      if (value.includes("left") || value.includes("start")) {
         el.style.marginRight = "auto";
       }
+      if (value.includes("center_vertical") || value === "center")
+        el.style.alignSelf = "center";
+
+      if (value === "end" || value === "right") el.style.marginLeft = "auto";
+      if (value === "start" || value === "left") el.style.marginRight = "auto";
       if (value.includes("bottom")) el.style.alignSelf = "flex-end";
+
       if (value.includes("top")) el.style.alignSelf = "flex-start";
       break;
-      case "android:layout_margin":
+    case "android:layout_margin":
       el.style.margin = toPx(value);
       break;
     case "android:layout_marginTop":
@@ -189,7 +203,7 @@ function aplicarAtributo(el, attr, value) {
     case "android:layout_marginRight":
       el.style.marginRight = toPx(value);
       break;
-      case "android:padding":
+    case "android:padding":
       el.style.padding = toPx(value);
       break;
     case "android:paddingTop":
@@ -206,7 +220,7 @@ function aplicarAtributo(el, attr, value) {
     case "android:paddingRight":
       el.style.paddingRight = toPx(value);
       break;
-      
+
     case "android:textStyle":
       if (value === "bold") el.style.fontWeight = "bold";
       break;
@@ -214,8 +228,8 @@ function aplicarAtributo(el, attr, value) {
 }
 
 function aplicarEstilo(el, styleName) {
-  const name = styleName.replace("@style/", "");
-  const style = stylesCache[name];
+  let name = styleName.replace("@style/", "");
+  let style = stylesCache[name];
   if (!style) return;
 
   if (style.parent) aplicarEstilo(el, style.parent);
@@ -225,47 +239,47 @@ function aplicarEstilo(el, styleName) {
 }
 
 function converter(node) {
-  let el;
-  let tag = node.tagName;
-  let orientation = node.getAttribute("android:orientation") || "horizontal";
+  let el,
+    tag = node.tagName;
   if (tag === "LinearLayout") {
+    let orientation = node.getAttribute("android:orientation") || "horizontal";
     el = document.createElement("div");
     el.style.display = "flex";
     el.style.boxSizing = "border-box";
-    el.style.flexDirection =orientation === "vertical"
-        ? "column"
-        : "row";
+    el.style.flexDirection = orientation === "vertical" ? "column" : "row";
   } else if (tag === "TextView" || tag === "Button") {
     el = document.createElement(tag === "Button" ? "button" : "div");
     el.style.display = "flex";
     el.style.boxSizing = "border-box";
     el.innerText = obterValor(node.getAttribute("android:text"));
     if (tag === "Button") {
-      el.style.border = "1px solid #ddd";
       el.style.cursor = "pointer";
-      el.style.backgroundColor = "#e0e0e0"
+      el.style.border = "1px solid #ddd";
+      el.style.appearance = "none";
+      el.style.outline = "none";
+      el.style.backgroundColor = "transparent";
     }
   } else {
     el = document.createElement("div");
     el.style.display = "flex";
     el.style.boxSizing = "border-box";
   }
-
   let weight = node.getAttribute("android:layout_weight");
   if (weight) {
     el.style.flexGrow = weight;
     el.style.flexShrink = "1";
     el.style.flexBasis = "0px";
   }
-
   let styleAttr = node.getAttribute("style");
   if (styleAttr) aplicarEstilo(el, styleAttr);
 
   Array.from(node.attributes).forEach((attr) => {
     aplicarAtributo(el, attr.name, attr.value);
   });
+
   Array.from(node.children).forEach((child) =>
     el.appendChild(converter(child))
   );
+
   return el;
 }

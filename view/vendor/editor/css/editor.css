@@ -28,10 +28,13 @@ body {
   color: #fff;
   text-decoration: none;
   padding: 5px 10px 5px 10px;
-  &:hover {
+  &:hover,
+  &:active,
+  &:focus {
     color: #f00;
     background-color: #fff;
     border-radius: 3px;
+    transform: scale(0.3);
   }
 }
 
@@ -150,7 +153,9 @@ body {
   text-decoration: none;
   cursor: pointer;
 }
-.path_display li:hover {
+.path_display li:hover,
+.path_display li:active,
+.path_display li:focus {
   background-color: #333;
 }
 .projects-menu {
@@ -179,7 +184,9 @@ body {
   border-bottom: 1px solid #333;
 }
 
-.projects-menu li:hover {
+.projects-menu li:hover,
+.projects-menu li:active,
+.projects-menu li:focus {
   background: #37373d;
 }
 
@@ -195,7 +202,9 @@ body {
   border-radius: 10px;
 }
 
-.path_display::-webkit-scrollbar-thumb:hover {
+.path_display::-webkit-scrollbar-thumb:hover,
+.path_display::-webkit-scrollbar-thumb:active,
+.path_display::-webkit-scrollbar-thumb:focus {
   background: #555;
 }
 
