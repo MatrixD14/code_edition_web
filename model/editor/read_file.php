@@ -1,18 +1,20 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 require_once '../../bootstrap.php';
 
 $file = $_GET['file'] ?? '';
-$path = realpath(HTDOC . '/' . $file);
+$base = realpath(HTDOC);
+$path = realpath($base . '/' . ltrim($file, '/'));
 
 if (!$path || !is_file($path) || strpos($path, realpath(HTDOC)) !== 0) {
     http_response_code(403);
-    echo "Acesso negado ou arquivo não encontrado.";
     exit;
 }
 
 if (ob_get_level()) ob_end_clean();
 
-header('Content-Type: text/plain');
-header('Content-Length: ' . filesize($path));
+header('Content-Type: text/plain; charset=utf-8');
 readfile($path);
 exit;
