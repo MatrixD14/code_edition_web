@@ -10,7 +10,8 @@
     <div class="smartphone" id="screen">
         <p style="padding: 20px;">Aguardando XML do editor...</p>
     </div>
-
+    <div class="error"></div>
+    <script src="./js/variaveis.js"></script>
     <script src="./js/leitor_xml.js"></script>
 </body>
 </html>

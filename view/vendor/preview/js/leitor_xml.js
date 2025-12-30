@@ -3,9 +3,9 @@ let channel = new BroadcastChannel("android_preview");
 
 let stringsCache = {},
   colorsCache = {},
-  stylesCache = {};
+  stylesCache = {},
+  drawablesCache = {};
 let currentProject = "";
-
 channel.onmessage = async (event) => {
   let { xml, projectRoot } = event.data;
   if (projectRoot && projectRoot !== currentProject) {
@@ -13,6 +13,7 @@ channel.onmessage = async (event) => {
     stringsCache = {};
     colorsCache = {};
     stylesCache = {};
+    drawablesCache = {};
     await carregarRecursos(projectRoot);
   }
   renderizar(xml);
@@ -93,6 +94,10 @@ async function carregarRecursos(projectRoot) {
 
 function obterValor(attr) {
   if (!attr) return "";
+  if (androidColors[attr]) return androidColors[attr];
+  if (attr.startsWith("@android:color/") && !androidColors[attr])
+    console.warn("Android color não mapeado:", attr);
+
   let valor = attr;
   if (attr.startsWith("@color/")) valor = colorsCache[attr] || "#000000";
   if (attr.startsWith("@string/")) return stringsCache[attr] || attr;
@@ -104,159 +109,80 @@ function obterValor(attr) {
   return valor;
 }
 
+async function carregarDrawable(projectRoot, name) {
+  try {
+    let r = await fetch(
+      `../../../model/editor/read_file.php?file=${encodeURIComponent(
+        projectRoot + "/res/drawable/" + name + ".xml"
+      )}`
+    );
+
+    if (!r.ok) return null;
+
+    let text = await r.text();
+    let doc = new DOMParser().parseFromString(text, "text/xml");
+
+    if (doc.querySelector("parsererror")) {
+      console.warn("Erro ao parsear drawable:", name);
+      return null;
+    }
+
+    return doc.documentElement;
+  } catch (e) {
+    console.warn("Drawable não encontrado:", name);
+    return null;
+  }
+}
+
+function aplicarShapeDrawable(el, shapeNode) {
+  if (!shapeNode || shapeNode.tagName !== "shape") return;
+
+  let solid = shapeNode.querySelector("solid");
+  if (solid) {
+    let color = solid.getAttribute("android:color");
+    el.style.backgroundColor = obterValor(color);
+  }
+
+  let stroke = shapeNode.querySelector("stroke");
+  if (stroke) {
+    el.style.borderStyle = "solid";
+    el.style.borderWidth = stroke
+      .getAttribute("android:width")
+      ?.replace(/dp/g, "px");
+    el.style.borderColor = obterValor(stroke.getAttribute("android:color"));
+  }
+
+  let corners = shapeNode.querySelector("corners");
+  if (corners) {
+    let radius =
+      corners.getAttribute("android:radius") ||
+      corners.getAttribute("android:topLeftRadius");
+
+    if (radius) el.style.borderRadius = radius.replace(/dp/g, "px");
+  }
+
+  let padding = shapeNode.querySelector("padding");
+  if (padding) {
+    el.style.paddingTop =
+      padding.getAttribute("android:top")?.replace(/dp/g, "px") || "";
+    el.style.paddingBottom =
+      padding.getAttribute("android:bottom")?.replace(/dp/g, "px") || "";
+    el.style.paddingLeft =
+      padding.getAttribute("android:left")?.replace(/dp/g, "px") || "";
+    el.style.paddingRight =
+      padding.getAttribute("android:right")?.replace(/dp/g, "px") || "";
+  }
+}
+
 function aplicarAtributo(el, attr, value) {
   if (!value) return;
+
   if (attr.startsWith("android:")) attr = attr.replace("android:", "");
-  let toPx = (val) => {
-    if (typeof val !== "string") return val;
-    return val.replace(/dp|sp/g, "px");
-  };
 
-  switch (attr) {
-    case "layout_width":
-      if (value === "match_parent") el.style.width = "100%";
-      else if (value === "wrap_content") el.style.width = "auto";
-      else if (value === "0dp") el.style.width = "0px";
-      else el.style.width = toPx(value);
-      break;
-    case "layout_height":
-      if (value === "match_parent") el.style.height = "100%";
-      else if (value === "wrap_content") el.style.height = "auto";
-      else el.style.height = toPx(value);
-      break;
-    case "layout_weight":
-      el.style.flex = value;
-      break;
-    case "textSize":
-      el.style.fontSize = toPx(value);
-      break;
-    case "background":
-      el.style.backgroundColor = obterValor(value);
-      break;
-    case "textColor":
-      el.style.color = obterValor(value);
-      break;
-    case "gravity":
-      el.style.display = "flex";
-      if (value.includes("center")) {
-        el.style.justifyContent = "center";
-        el.style.alignItems = "center";
-      }
-      if (value.includes("center_vertical")) el.style.alignItems = "center";
+  const handler = attributeHandlers[attr];
 
-      if (value.includes("center_horizontal"))
-        el.style.justifyContent = "center";
-
-      if (value.includes("end") || value.includes("right"))
-        el.style.justifyContent = "flex-end";
-
-      if (value.includes("start") || value.includes("left"))
-        el.style.justifyContent = "flex-start";
-      if (value.includes("bottom")) el.style.alignItems = "flex-end";
-
-      if (value.includes("top")) el.style.alignItems = "flex-start";
-      break;
-    case "layout_gravity":
-      el.style.display = "flex";
-      if (value === "center" || value === "center_horizontal") {
-        el.style.marginLeft = "auto";
-        el.style.marginRight = "auto";
-      }
-      if (value.includes("center_vertical") || value === "center")
-        el.style.alignSelf = "center";
-
-      if (value === "end" || value === "right") el.style.marginLeft = "auto";
-      if (value === "start" || value === "left") el.style.marginRight = "auto";
-      if (value.includes("bottom")) el.style.alignSelf = "flex-end";
-
-      if (value.includes("top")) el.style.alignSelf = "flex-start";
-      break;
-    case "layout_margin":
-      el.style.margin = toPx(value);
-      break;
-    case "layout_marginTop":
-      el.style.marginTop = toPx(value);
-      break;
-    case "layout_marginBottom":
-      el.style.marginBottom = toPx(value);
-      break;
-    case "layout_marginStart":
-    case "layout_marginLeft":
-      el.style.marginLeft = toPx(value);
-      break;
-    case "layout_marginEnd":
-    case "layout_marginRight":
-      el.style.marginRight = toPx(value);
-      break;
-    case "padding":
-      el.style.padding = toPx(value);
-      break;
-    case "paddingTop":
-      el.style.paddingTop = toPx(value);
-      break;
-    case "paddingBottom":
-      el.style.paddingBottom = toPx(value);
-      break;
-    case "paddingStart":
-    case "paddingLeft":
-      el.style.paddingLeft = toPx(value);
-      break;
-    case "paddingEnd":
-    case "paddingRight":
-      el.style.paddingRight = toPx(value);
-      break;
-    case "visibility":
-      if (value === "gone") el.style.display = "none";
-      else if (value === "invisible") el.style.visibility = "hidden";
-      else el.style.visibility = "visible";
-      break;
-    case "alpha":
-      el.style.opacity = value;
-      break;
-    case "radius":
-    case "cornerRadius":
-      el.style.borderRadius = toPx(value);
-      break;
-    case "elevation":
-      let elevation = parseFloat(value);
-      el.style.boxShadow = `0px ${
-        elevation / 2
-      }px ${elevation}px rgba(0,0,0,0.2)`;
-      break;
-    case "textAlignment":
-      if (value === "center") el.style.textAlign = "center";
-      if (value === "viewStart" || value === "textStart")
-        el.style.textAlign = "left";
-      if (value === "viewEnd" || value === "textEnd")
-        el.style.textAlign = "right";
-      break;
-    case "lineSpacingExtra":
-      el.style.lineHeight = `calc(1em + ${toPx(value)})`;
-      break;
-    case "layout_centerInParent":
-      if (value === "true") {
-        el.style.top = "50%";
-        el.style.left = "50%";
-        el.style.transform = "translate(-50%, -50%)";
-      }
-      break;
-    case "layout_alignParentBottom":
-      if (value === "true") el.style.bottom = "0";
-      break;
-    case "layout_alignParentRight":
-    case "layout_alignParentEnd":
-      if (value === "true") el.style.right = "0";
-      break;
-    case "strokeWidth":
-      el.style.borderWidth = toPx(value);
-      el.style.borderStyle = "solid";
-      break;
-    case "strokeColor":
-      el.style.borderColor = obterValor(value);
-      break;
-    case "textStyle":
-      if (value === "bold") el.style.fontWeight = "bold";
-      break;
+  if (handler) handler(el, value);
+  else {
   }
 }
 
