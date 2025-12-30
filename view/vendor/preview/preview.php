@@ -13,5 +13,6 @@
     <div class="error"></div>
     <script src="./js/variaveis.js"></script>
     <script src="./js/leitor_xml.js"></script>
+    <script src="./js/drawables.js"></script>
 </body>
 </html>

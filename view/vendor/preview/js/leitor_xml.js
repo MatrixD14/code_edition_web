@@ -1,10 +1,10 @@
 let screen = document.getElementById("screen");
 let channel = new BroadcastChannel("android_preview");
-
 let stringsCache = {},
   colorsCache = {},
   stylesCache = {},
   drawablesCache = {};
+
 let currentProject = "";
 channel.onmessage = async (event) => {
   let { xml, projectRoot } = event.data;
@@ -109,71 +109,6 @@ function obterValor(attr) {
   return valor;
 }
 
-async function carregarDrawable(projectRoot, name) {
-  try {
-    let r = await fetch(
-      `../../../model/editor/read_file.php?file=${encodeURIComponent(
-        projectRoot + "/res/drawable/" + name + ".xml"
-      )}`
-    );
-
-    if (!r.ok) return null;
-
-    let text = await r.text();
-    let doc = new DOMParser().parseFromString(text, "text/xml");
-
-    if (doc.querySelector("parsererror")) {
-      console.warn("Erro ao parsear drawable:", name);
-      return null;
-    }
-
-    return doc.documentElement;
-  } catch (e) {
-    console.warn("Drawable não encontrado:", name);
-    return null;
-  }
-}
-
-function aplicarShapeDrawable(el, shapeNode) {
-  if (!shapeNode || shapeNode.tagName !== "shape") return;
-
-  let solid = shapeNode.querySelector("solid");
-  if (solid) {
-    let color = solid.getAttribute("android:color");
-    el.style.backgroundColor = obterValor(color);
-  }
-
-  let stroke = shapeNode.querySelector("stroke");
-  if (stroke) {
-    el.style.borderStyle = "solid";
-    el.style.borderWidth = stroke
-      .getAttribute("android:width")
-      ?.replace(/dp/g, "px");
-    el.style.borderColor = obterValor(stroke.getAttribute("android:color"));
-  }
-
-  let corners = shapeNode.querySelector("corners");
-  if (corners) {
-    let radius =
-      corners.getAttribute("android:radius") ||
-      corners.getAttribute("android:topLeftRadius");
-
-    if (radius) el.style.borderRadius = radius.replace(/dp/g, "px");
-  }
-
-  let padding = shapeNode.querySelector("padding");
-  if (padding) {
-    el.style.paddingTop =
-      padding.getAttribute("android:top")?.replace(/dp/g, "px") || "";
-    el.style.paddingBottom =
-      padding.getAttribute("android:bottom")?.replace(/dp/g, "px") || "";
-    el.style.paddingLeft =
-      padding.getAttribute("android:left")?.replace(/dp/g, "px") || "";
-    el.style.paddingRight =
-      padding.getAttribute("android:right")?.replace(/dp/g, "px") || "";
-  }
-}
-
 function aplicarAtributo(el, attr, value) {
   if (!value) return;
 
@@ -198,92 +133,31 @@ function aplicarEstilo(el, styleName) {
 }
 
 function converter(node) {
-  let el,
-    tag = node.tagName;
-  switch (tag) {
-    case "LinearLayout":
-      el = document.createElement("div");
-      el.style.display = "flex";
-      let orientation =
-        node.getAttribute("android:orientation") || "horizontal";
-      el.style.flexDirection = orientation === "vertical" ? "column" : "row";
-      break;
-    case "FrameLayout":
-    case "RelativeLayout":
-    case "ConstraintLayout":
-      el = document.createElement("div");
-      el.style.position = "relative";
-      el.style.display = "block";
-      break;
-    case "ScrollView":
-      el = document.createElement("div");
-      el.style.overflowY = "auto";
-      el.style.display = "block";
-      break;
-    case "ImageView":
-      el = document.createElement("img");
-      el.style.display = "block";
-      el.style.objectFit = "cover";
-      let src =
-        node.getAttribute("android:src") || node.getAttribute("app:srcCompat");
-      if (src) el.src = obterValor(src);
-      break;
-    case "TextView":
-    case "Button":
-      el = document.createElement(tag === "Button" ? "button" : "div");
-      el.style.display = "flex";
-      el.style.alignItems = "center";
-      el.innerText = obterValor(node.getAttribute("android:text"));
-      if (tag === "Button") {
-        el.style.cursor = "pointer";
-        el.style.border = "1px solid #ddd";
-        el.style.appearance = "none";
-        el.style.outline = "none";
-      }
-      break;
-    case "AbsoluteLayout":
-      el = document.createElement("div");
-      el.style.position = "relative";
-      break;
-    case "View":
-      el = document.createElement("div");
-      break;
-    case "CheckBox":
-    case "RadioButton":
-      el = document.createElement("input");
-      el.type = tag === "CheckBox" ? "checkbox" : "radio";
-      el.style.marginRight = "8px";
-      break;
+  const tag = node.tagName;
 
-    case "EditText":
-      el = document.createElement("input");
-      el.type = "text";
-      el.style.border = "0px";
-      el.style.borderBottom = "1px solid #777";
-      el.style.padding = "4px 0";
-      el.placeholder = obterValor(node.getAttribute("android:hint") || "");
-      break;
-    default:
-      el = document.createElement("div");
-      el.style.display = "flex";
-  }
+  const handler = viewHandlers[tag];
+  const el = handler ? handler(node) : document.createElement("div");
+
   el.style.boxSizing = "border-box";
+
   let weight = node.getAttribute("android:layout_weight");
   if (weight) {
     el.style.flexGrow = weight;
     el.style.flexShrink = "1";
     el.style.flexBasis = "0px";
   }
+
   let styleAttr = node.getAttribute("style");
   if (styleAttr) aplicarEstilo(el, styleAttr);
+
   Array.from(node.attributes).forEach((attr) => {
     aplicarAtributo(el, attr.name, attr.value);
   });
+
   Array.from(node.children).forEach((child) => {
-    let childEl = converter(child);
-    if (tag === "RelativeLayout" || tag === "FrameLayout")
-      childEl.style.position = "absolute";
+    const childEl = converter(child);
     el.appendChild(childEl);
   });
+
   return el;
 }
