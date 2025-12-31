@@ -1,7 +1,7 @@
 const rex_html =
   /(?<comment>&lt;!--[\s\S]*?--&gt;)|(?<tag>&lt;\/?[a-z0-9:\-]+[\s\S]*?&gt;)/gi;
 const rex_code =
-  /(?<comment>\/\/.*|\/\*[\s\S]*?\*\/)|(?<string>"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(?<keyword>\b(?:function|return|var|let|const|if|else|for|while|php|echo|public|class|static|this|import|void|private|package|protected|new|extends|super|true|false|export|final|null|implements|interface|async|try|catch)\b)|(?<number>\b\d+\b)|(?<keyVar>\b(?:int|string|boolean|float|Toast|Button|TextView|LinearLayout|View|Bundle|double|char|long|short|byte|ArrayList|Context|Intent|Bitmap|HashMap|Override)\b)/gi;
+  /(?<comment>\/\/.*|\/\*[\s\S]*?\*\/)|(?<string>"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(?<keyword>\b(?:function|return|var|let|const|if|else|for|while|php|echo|public|class|static|this|import|void|private|package|protected|new|extends|super|true|false|export|final|null|implements|interface|async|try|catch|switch|case|break)\b)|(?<number>\b\d+\b)|(?<keyVar>\b(?:int|string|boolean|float|Toast|Button|TextView|LinearLayout|View|Bundle|double|char|long|short|byte|ArrayList|Context|Intent|Bitmap|HashMap|Override)\b)/gi;
 const escapeHTML = (str) =>
   str
     .replace(/&/g, "&amp;")

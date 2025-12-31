@@ -32,7 +32,7 @@ if ($type === 'folder') {
         $fileNameOnly = pathinfo($targetPath, PATHINFO_FILENAME);
         switch($extension){
             case "xml":
-                $content = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<shape xmlns:android=\"http://schemas.android.com/apk/res/android\">\n<shade>";
+                $content = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<shape/selector/layer-list xmlns:android=\"http://schemas.android.com/apk/res/android\">\n</shape/selector/layer-list>";
                 break;
             case "java":
                 $relativePath = str_replace(HTDOC, '', $targetPath);
