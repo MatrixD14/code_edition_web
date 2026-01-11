@@ -22,6 +22,24 @@ ui.btnOpenProject.addEventListener("click", async (e) => {
     .map((item) => `<li data-path="${item.path}">📂 ${item.name}</li>`)
     .join("");
 });
+function lockEditor(message = "Abra um projeto") {
+  if (!ui.input) return;
+
+  ui.input.value = message;
+  ui.input.setAttribute("readonly", "true");
+  ui.input.classList.add("editor-locked");
+  delete ui.input.dataset.currentFile;
+}
+
+function unlockEditor() {
+  if (!ui.input) return;
+  ui.input.removeAttribute("readonly");
+  ui.input.classList.remove("editor-locked");
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  lockEditor();
+});
 
 ui.projectsList.addEventListener("click", (e) => {
   const li = e.target.closest("li");
@@ -44,7 +62,7 @@ ui.projectsList.addEventListener("click", (e) => {
   $(".nome_diretory").textContent = projectName;
   ui.projectSelector.classList.add("hidden");
   ui.pathDisplay.innerHTML = "<li>Carregando projeto...</li>";
-
+  lockEditor("Selecione um arquivo para editar");
   initProjectTree(projectPath);
 });
 
@@ -106,6 +124,7 @@ async function loadSubDir(dirPath, container) {
 }
 
 async function openFile(path) {
+  unlockEditor();
   let highlight = $("#highlight-content");
 
   if (highlight) highlight.textContent = "Carregando...";
@@ -317,8 +336,10 @@ $("#btn-delete").addEventListener("click", async () => {
       if (
         fileAbertoLimpo === pathLimpo ||
         fileAbertoLimpo.startsWith(pathLimpo + "/")
-      )
+      ) {
         restEditor();
+        lockEditor("Arquivo removido. Selecione outro.");
+      }
 
       currentSelectedPath = "";
       if (parentPath) refreshFolder(parentPath);
