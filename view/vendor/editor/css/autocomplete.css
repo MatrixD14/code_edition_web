@@ -1,0 +1,11 @@
+#xml-help {
+  display: flex;
+  flex-direction: column;
+  width: 260px;
+  background: #141414;
+  color: #eee;
+  border: 1px solid #ddd;
+  padding: 8px;
+  flex-shrink: 0;
+  overflow-y: auto;
+}

@@ -13,6 +13,7 @@ $login->protect();
         <link rel="stylesheet" href="./css/color_text.css">
         <link rel="stylesheet" href="./css/terminal_style.css">
         <link rel="stylesheet" href="./css/confing.css">
+        <link rel="stylesheet" href="./css/menu_xml.css">
         <title>editor</title>
     </head>
     <body >
@@ -46,9 +47,15 @@ $login->protect();
             <h3 >Configurações</h3>
             <hr>
             <label for="font_size">Tamanho da fonte:</label>
-            <input type="number" id="font_size" name="font_size" min="10" max="35" value="14">
+            <input type="number" id="font_size" name="font_size" min="10" max="35">
+            <br><br>
+            <label for="painel_tag">Painel de tag:</label>
+            <input type="checkbox" id="painel_tag" name="painel_tag">
             <br><br>
             <button id="close_config" class>Enter</button>
+        </div>
+        <div id="xml-quick" class="hidden">
+            <div class="xml-quick-box"></div>
         </div>
         <div class="painel_path">
             <div class="mune_select_file_dir">
@@ -65,6 +72,7 @@ $login->protect();
                     </ul>   
                 </div>
             </div>
+
             <div class="editor_terminal_container">
                 <div class="editor-box">
                     <div id="line-numbers">1</div>
@@ -72,6 +80,10 @@ $login->protect();
                         <pre id="highlight-layer"><code id="highlight-content"></code></pre>
                         <textarea class="editor" id="code-input" spellcheck="false"></textarea>
                     </div>
+                    <aside id="xml-help">
+                        <div id="xml-context"></div>
+                        <ul id="xml-list"></ul>
+                      </aside>
                 </div>
                 <div class="terminal-box">
                     <div class="terminal_top">
@@ -88,14 +100,22 @@ $login->protect();
                 </div>
             </div>
         </div>
-                
+                <script>
+                    window.EDITOR_CONFIG = {
+                        autocomplete: <?= json_encode($ativaAutocomple) ?>,
+                        fontsizevalue: <?= json_encode($fontsize)?>
+                    };
+                </script>
                 <script src="./js/variaveis.js"></script>
                 <script src="./js/conf_system.js"></script>
                 <script src="./js/highlighter.js"></script>
                 <script src="./js/list_path_editor.js"></script>
-        <script src="./js/upload_path_editor.js"></script>
-        <script src="./js/terminal.js"></script>
-        <script src="./js/fullscreen.js"></script>
-        <script src="./js/preview/preview.js"></script>
-    </body>
+                <script src="./js/upload_path_editor.js"></script>
+                <script src="./js/terminal.js"></script>
+                <script src="./js/fullscreen.js"></script>
+                <script src="./js/preview/preview.js"></script>
+                <script src="../preview/js/variaveis.js"></script>
+                <script src="./js/autocomplete/variaveis.js"></script>
+                <script src="./js/autocomplete/autocomplet.js"></script>
+      </body>
 </html>

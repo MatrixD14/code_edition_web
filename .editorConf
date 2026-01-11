@@ -1,2 +1,8 @@
 [accounts]
-test = 123
+tt = 1
+[path_htdoc]
+HTDOC=/htdoc
+[fontSize]
+size=16
+[autoComple]
+autocomple=true

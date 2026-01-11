@@ -260,3 +260,9 @@ function resolverDrawable(src) {
   }
   return src;
 }
+const xmlSuggestions = {
+  views: Object.keys(viewHandlers),
+  attributes: Object.keys(attributeHandlers),
+  shapes: Object.keys(shapeHandlers),
+  colors: Object.keys(androidColors),
+};

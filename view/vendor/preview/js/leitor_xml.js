@@ -1,4 +1,5 @@
 let screen = document.getElementById("screen");
+let error = document.querySelector(".error");
 let channel = new BroadcastChannel("android_preview");
 let stringsCache = {},
   colorsCache = {},
@@ -19,6 +20,26 @@ channel.onmessage = async (event) => {
   renderizar(xml);
 };
 
+function extrairErroXML(errorText) {
+  let tipo = "Erro de sintaxe no XML";
+  let linha = null;
+
+  let tipoMatch = errorText.match(/Erro de parse XML:[^\n]+/);
+  if (tipoMatch) tipo = tipoMatch[0].replace("Erro de parse XML:", "").trim();
+
+  let linhaMatch = errorText.match(/Linha número (\d+)/);
+  if (linhaMatch) linha = linhaMatch[1];
+  if (errorText.includes("tag sem correspondência")) {
+    tipo = "Tag não fechada ou fechamento incorreto (>)";
+  } else if (errorText.includes("formato incorreto")) {
+    tipo = "Formato inválido no XML";
+  } else if (errorText.includes("Esperado: .")) {
+    tipo = "Esperado fechamento de tag (>)";
+  }
+
+  return { tipo, linha };
+}
+
 function renderizar(xmlString) {
   if (!xmlString) return;
 
@@ -27,18 +48,17 @@ function renderizar(xmlString) {
 
   let errorNode = xmlDoc.querySelector("parsererror");
   if (errorNode) {
-    console.error("Erro no XML:", errorNode.textContent);
-    screen.innerHTML = `<div style="color:red; padding:10px;">Erro de sintaxe no XML: ${errorNode.textContent}</div>`;
+    screen.style.display = "none";
+    // error.innerHTML = `<div style="color:red; padding:10px;">Erro de sintaxe no XML: ${errorNode.textContent}</div>`;
+    let { tipo, linha } = extrairErroXML(errorNode.textContent);
+    error.innerHTML = `<div style="color:red; padding:10px;">${tipo}<br>
+      ${linha ? `Linha ${linha}` : ""}</div>`;
     return;
   }
-
+  screen.style.display = "flex";
+  error.textContent = "";
   screen.textContent = "";
-  let root = xmlDoc.documentElement;
-
-  if (root) {
-    console.log("Renderizando tag raiz:", root.tagName);
-    screen.appendChild(converter(root));
-  }
+  screen.appendChild(converter(xmlDoc.documentElement));
 }
 async function carregarRecursos(projectRoot) {
   try {
@@ -139,13 +159,6 @@ function converter(node) {
   const el = handler ? handler(node) : document.createElement("div");
 
   el.style.boxSizing = "border-box";
-
-  let weight = node.getAttribute("android:layout_weight");
-  if (weight) {
-    el.style.flexGrow = weight;
-    el.style.flexShrink = "1";
-    el.style.flexBasis = "0px";
-  }
 
   let styleAttr = node.getAttribute("style");
   if (styleAttr) aplicarEstilo(el, styleAttr);

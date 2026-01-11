@@ -5,8 +5,13 @@ body {
   align-items: center;
   justify-content: center;
   display: flex;
-  flex-direction: column;
   margin: 0;
+}
+.error {
+  background-color: #fff;
+  color: #000;
+  margin-inline-start: 1dvw;
+  width: 250px;
 }
 .smartphone {
   width: 360px;

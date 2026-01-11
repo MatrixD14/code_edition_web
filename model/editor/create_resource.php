@@ -17,7 +17,6 @@ if (!empty($parentDir)) {
 }
 $targetPath .= $name;
 
-
 if ($type === 'folder') {
     if (!is_dir($targetPath)) {
         mkdir($targetPath, 0777, true);
@@ -32,7 +31,8 @@ if ($type === 'folder') {
         $fileNameOnly = pathinfo($targetPath, PATHINFO_FILENAME);
         switch($extension){
             case "xml":
-                $content = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<shape/selector/layer-list xmlns:android=\"http://schemas.android.com/apk/res/android\">\n</shape/selector/layer-list>";
+                $xmlType = $data['xmlType'] ?? null;
+                if ($extension === "xml") $content = xmlTemplate($xmlType);
                 break;
             case "java":
                 $relativePath = str_replace(HTDOC, '', $targetPath);
@@ -54,4 +54,28 @@ if ($type === 'folder') {
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Arquivo já existe.']);
     }
+}
+function xmlTemplate($type) {
+    switch ($type) {
+        case 'layout':
+      return "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n  android:layout_width=\"match_parent\"\n  android:layout_height=\"match_parent\">\n\n</LinearLayout>";
+
+    case 'values':
+      return "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n\n</resources>";
+
+    case 'drawable:shape':
+      return "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<shape xmlns:android=\"http://schemas.android.com/apk/res/android\">\n</shape>";
+
+    case 'drawable:selector':
+      return "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<selector xmlns:android=\"http://schemas.android.com/apk/res/android\">\n</selector>";
+
+    case 'drawable:layerList':
+      return "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<layer-list xmlns:android=\"http://schemas.android.com/apk/res/android\">\n</layer-list>";
+
+    case 'drawable:ripple':
+      return "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<ripple xmlns:android=\"http://schemas.android.com/apk/res/android\">\n</ripple>";
+
+    default:
+      return "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n</resources>";
+  }
 }

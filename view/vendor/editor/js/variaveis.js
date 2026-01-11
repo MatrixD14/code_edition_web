@@ -25,6 +25,7 @@ const config = {
   configSettings: $(".config_settings"),
   painelConfig: $(".painel-config"),
   closeConfig: $("#close_config"),
+  painel_tag: $("#painel_tag"),
 };
 
 function restEditor() {

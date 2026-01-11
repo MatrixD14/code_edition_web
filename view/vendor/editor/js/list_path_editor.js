@@ -2,6 +2,7 @@ let state = {
   currentSelectedFolder: "",
   currentProjectRoot: "",
 };
+let currentSelectedPath = "";
 
 ui.file_push_open.addEventListener(
   "click",
@@ -105,8 +106,7 @@ async function loadSubDir(dirPath, container) {
 }
 
 async function openFile(path) {
-  const input = $("#code-input"),
-    highlight = $("#highlight-content");
+  let highlight = $("#highlight-content");
 
   if (highlight) highlight.textContent = "Carregando...";
   try {
@@ -116,14 +116,14 @@ async function openFile(path) {
     state.currentSelectedFolder = path.substring(0, path.lastIndexOf("/"));
     const text = await response.text();
 
-    if (input) {
-      input.value = text;
-      input.dataset.currentFile = path;
+    if (ui.input) {
+      ui.input.value = text;
+      ui.input.dataset.currentFile = path;
 
       const displayNome = $(".nome_diretory");
       if (displayNome) displayNome.textContent = path.split("/").pop();
 
-      input.dispatchEvent(new Event("input"));
+      ui.input.dispatchEvent(new Event("input"));
     }
   } catch (err) {
     console.error(err);
@@ -131,8 +131,7 @@ async function openFile(path) {
 }
 
 ui.btnSalvar.addEventListener("click", async () => {
-  const input = $("#code-input");
-  const filePath = input.dataset.currentFile;
+  let filePath = ui.input.dataset.currentFile;
 
   if (!filePath) {
     alert("Selecione um arquivo primeiro!");
@@ -142,7 +141,7 @@ ui.btnSalvar.addEventListener("click", async () => {
   try {
     const response = await fetch("../../../model/editor/save_file.php", {
       method: "POST",
-      body: JSON.stringify({ file: filePath, content: input.value }),
+      body: JSON.stringify({ file: filePath, content: ui.input.value }),
     });
 
     const rawText = await response.text();
@@ -170,6 +169,45 @@ async function refreshFolder(path) {
   li.dataset.open = "1";
   await loadSubDir(path, novoContainer);
 }
+function quickPick(options) {
+  return new Promise((resolve) => {
+    let box = $("#xml-quick");
+    let container = box.querySelector(".xml-quick-box");
+    container.innerHTML = "";
+
+    Object.entries(options).forEach(([key, label]) => {
+      let div = document.createElement("div");
+      div.textContent = label;
+      div.onclick = () => {
+        box.classList.add("hidden");
+        resolve(key);
+      };
+      container.appendChild(div);
+    });
+
+    box.classList.remove("hidden");
+  });
+}
+async function askXmlType() {
+  const main = await quickPick({
+    layout: "Layout",
+    drawable: "Drawable",
+    values: "Values",
+    generic: "XML genérico",
+  });
+
+  if (main !== "drawable") return main;
+
+  const sub = await quickPick({
+    shape: "Shape",
+    selector: "Selector",
+    layerList: "Layer-list",
+    ripple: "Ripple",
+  });
+
+  return `drawable:${sub}`;
+}
+
 async function createResource(type) {
   let targetDir = state.currentSelectedFolder || state.currentProjectRoot;
 
@@ -182,6 +220,12 @@ async function createResource(type) {
   );
   if (!name) return;
 
+  let xmlType = null;
+
+  if (type === "file" && name.toLowerCase().endsWith(".xml")) {
+    xmlType = await askXmlType();
+    if (!xmlType) return;
+  }
   try {
     const response = await fetch("../../../model/editor/create_resource.php", {
       method: "POST",
@@ -190,6 +234,7 @@ async function createResource(type) {
         type: type,
         name: name,
         parentDir: targetDir,
+        xmlType,
       }),
     });
 
@@ -225,6 +270,7 @@ function selecionarItem(elemento, caminho) {
   } else state.currentSelectedFolder = caminho;
   window.terminalCWD = state.currentSelectedFolder;
 }
+
 function sincronizarTerminalComProjeto(path) {
   window.terminalCWD = path;
 
@@ -239,7 +285,6 @@ function sincronizarTerminalComProjeto(path) {
 }
 
 $("#btn-delete").addEventListener("click", async () => {
-  let input = $("#code-input");
   if (!currentSelectedPath) {
     alert("Selecione um arquivo ou pasta para deletar.");
     return;
@@ -265,7 +310,7 @@ $("#btn-delete").addEventListener("click", async () => {
         currentSelectedPath.lastIndexOf("/")
       );
       let pathLimpo = currentSelectedPath.replace(/^\/|\/$/g, ""),
-        fileAbertoLimpo = (input.dataset.currentFile || "").replace(
+        fileAbertoLimpo = (ui.input.dataset.currentFile || "").replace(
           /^\/|\/$/g,
           ""
         );
