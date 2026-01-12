@@ -3,7 +3,6 @@ const xml_tag = {
     prefix: "android:",
     base: [
       "id",
-      "style",
       "layout_width",
       "layout_height",
       "layout_margin",
@@ -45,6 +44,16 @@ const xml_tag = {
   style: {
     prefix: "parent=",
     base: [],
+    views: {},
+  },
+  xmlns: {
+    prefix: "xmlns:",
+    base: ["android", "tools"],
+    views: {},
+  },
+  tools: {
+    prefix: "tools:",
+    base: ["context", "ignore", "targetApi"],
     views: {},
   },
   drawable: {
@@ -91,4 +100,26 @@ const xml_resouc = {
     prefix: "@color/",
     values: ["#ffffffff", "#ff000000"],
   },
+  drawable: {
+    prefix: "@drawable/",
+    values: [""],
+  },
+  style: {
+    prefix: "@style/",
+    values: [""],
+  },
+};
+const xml_values = {
+  layout_width: ["match_parent", "wrap_content", "0dp"],
+  layout_height: ["match_parent", "wrap_content", "0dp"],
+  layout_weight: ["0", "0.5", "1"],
+  visibility: ["visible", "invisible", "gone"],
+  orientation: ["horizontal", "vertical"],
+  gravity: ["start", "end", "center", "center_vertical", "center_horizontal"],
+  ellipsize: ["start", "middle", "end", "marquee"],
+  textSize: ["12sp", "14sp", "16sp", "20sp", "30sp", "40sp"],
+  background: ["@color/", "@drawable/"],
+  textColor: ["@color/"],
+  id: ["@+id/"],
+  style: ["@style/"],
 };

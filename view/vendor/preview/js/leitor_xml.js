@@ -49,7 +49,6 @@ function renderizar(xmlString) {
   let errorNode = xmlDoc.querySelector("parsererror");
   if (errorNode) {
     screen.style.display = "none";
-    // error.innerHTML = `<div style="color:red; padding:10px;">Erro de sintaxe no XML: ${errorNode.textContent}</div>`;
     let { tipo, linha } = extrairErroXML(errorNode.textContent);
     error.innerHTML = `<div style="color:red; padding:10px;">${tipo}<br>
       ${linha ? `Linha ${linha}` : ""}</div>`;

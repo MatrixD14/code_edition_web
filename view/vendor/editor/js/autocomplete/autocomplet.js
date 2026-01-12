@@ -1,34 +1,27 @@
 const editor = document.getElementById("code-input");
 const helperList = document.getElementById("xml-list");
 const helperContext = document.getElementById("xml-context");
+const xmml_help = document.getElementById("xml-help");
 
 function getAttrs(tag) {
   let list = [];
   Object.values(xml_tag).forEach((ns) => {
     if (!ns) return;
-    if (ns.prefix) list.push(ns.prefix);
+    if (Array.isArray(ns.base)) list.push(...ns.base);
 
-    let baseArr = Array.isArray(ns.base) ? ns.base : [];
-    let base = baseArr.map((a) => ns.prefix + a);
-    list.push(...base);
-
-    if (ns.views && ns.views[tag])
-      list.push(...ns.views[tag].map((a) => ns.prefix + a));
+    if (ns.views && ns.views[tag]) list.push(...ns.views[tag]);
   });
-  return list;
+  return [...new Set(list)];
 }
+
 function StyleAttrs() {
   let list = [];
-
   const android = xml_tag.android;
   list.push(android.prefix);
-
   list.push(...android.base.map((a) => android.prefix + a));
-
   Object.values(android.views).forEach((arr) => {
     list.push(...arr.map((a) => android.prefix + a));
   });
-
   return [...new Set(list)];
 }
 function getTags() {
@@ -44,19 +37,33 @@ function getTags() {
 function getXmlContext(text, cursor) {
   let before = text.slice(0, cursor);
   if (/<\w*$/.test(before)) return "tag";
-  if (/<\w+[^>]*\s[\w:]*$/.test(before)) return "attr";
-  if (/name="[^"]*$/.test(before)) return "attr";
+  if (/<\w+[^>]*\s+[\w:]*$/.test(before)) return "attr";
+  if (/="[^"]*$/.test(before)) return "value";
   return null;
 }
 function getCurrentWord(text, cursor) {
   const before = text.slice(0, cursor);
-  const match = before.match(/([\w:@]+)$/);
+  const match = before.match(/([a-zA-Z0-9_:@\-]+)$/);
   return match ? match[1] : "";
 }
+function getCurrentAttr(text, cursor) {
+  const before = text.slice(0, cursor);
+  const match = before.match(/([\w:]+)\s*=\s*"[^"]*$/);
+  if (!match) return null;
+  return match[1].replace(/^\w+:/, "");
+}
+
 function isInsideValue(text, cursor) {
   const before = text.slice(0, cursor);
   return /="[^"]*$/.test(before);
 }
+
+function getCurrentValue(text, cursor) {
+  const before = text.slice(0, cursor);
+  const match = before.match(/="([^"]*)$/);
+  return match ? match[1] : "";
+}
+
 function isStyleItemName(text, cursor) {
   const before = text.slice(0, cursor);
   return /<item[^>]*\sname="[^"]*$/.test(before);
@@ -78,11 +85,12 @@ function updateHelperPanel() {
   helperList.innerHTML = "";
 
   if (!context) {
-    helperContext.textContent = "Sem contexto";
+    xmml_help.style.display = "none";
     return;
-  }
+  } else if (context !== " ") xmml_help.style.display = "flex";
 
   const currentWord = getCurrentWord(text, cursor);
+  const word = currentWord || "";
 
   let typesms,
     items = [];
@@ -91,52 +99,113 @@ function updateHelperPanel() {
     typesms = "atributos de style (android)";
     items = StyleAttrs();
   } else if (isInsideValue(text, cursor)) {
-    typesms = "valores de recurso";
-    Object.values(xml_resouc).forEach((res) => {
-      items.push(...res.values.map((v) => res.prefix + v));
-    });
+    typesms = "valores";
+    let attr = getCurrentAttr(text, cursor);
+    let typedValue = getCurrentValue(text, cursor);
+    if (attr && xml_values[attr]) {
+      items = xml_values[attr];
+    } else {
+      Object.values(xml_resouc).forEach((res) => {
+        items.push(...res.values.map((v) => res.prefix + v));
+      });
+    }
+    if (typedValue) {
+      items = items.filter((v) =>
+        v.toLowerCase().startsWith(typedValue.toLowerCase())
+      );
+    }
   } else if (context === "tag") {
     typesms = "tags disponivel";
     items = getTags();
   } else if (context === "attr") {
     typesms = "atributos android";
     const tag = getCurrentTag(text, cursor);
-    if (!currentWord.includes(":")) {
-      items = Object.values(xml_tag).map((ns) => ns.prefix);
+    const idx = currentWord.indexOf(":");
+
+    if (idx === -1) {
+      items = Object.values(xml_tag)
+        .map((ns) => ns.prefix)
+        .filter(Boolean);
     } else {
-      items = getAttrs(tag);
+      const typed = currentWord.slice(idx + 1);
+      items = getAttrs(tag).filter((a) =>
+        a.toLowerCase().startsWith(typed.toLowerCase())
+      );
     }
   }
   helperContext.textContent = typesms;
-  items = items.filter((item) =>
-    item.toLowerCase().startsWith(currentWord.toLowerCase())
-  );
 
+  if (!isStyleItemName(text, cursor) && !isInsideValue(text, cursor)) {
+    if (context === "attr" && currentWord.includes(":")) {
+      const typed = currentWord.split(":")[1] || "";
+      items = items.filter((i) =>
+        i.toLowerCase().startsWith(typed.toLowerCase())
+      );
+    } else if (word) {
+      items = items.filter((i) =>
+        i.toLowerCase().startsWith(word.toLowerCase())
+      );
+    }
+  }
+
+  if (!items.length) {
+    helperList.textContent = "";
+    helperContext.textContent = "";
+    return;
+  }
   items.forEach((item) => {
     const li = document.createElement("li");
     li.textContent = item;
     li.style.listStyleType = "none";
-    li.onclick = () => insertSuggestion(item);
+    li.onclick = () => {
+      copySuggestion(item);
+      helperList.innerHTML = "";
+    };
     helperList.appendChild(li);
   });
 }
-
-function insertSuggestion(value) {
-  const start = editor.selectionStart;
-  const text = editor.value;
-
-  let before;
-  if (isStyleItemName(text, start))
-    before = text.slice(0, start).replace(/name="[^"]*$/, 'name="');
-  else before = text.slice(0, start).replace(/[\w:@]+$/, "");
-  let after = text.slice(start);
-
-  editor.value = before + value + after;
-  editor.selectionStart = editor.selectionEnd = before.length + value.length;
-
-  editor.focus();
-  updateHelperPanel();
+function copySuggestion(value) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(value);
+  } else {
+    const tmp = document.createElement("textarea");
+    tmp.value = value;
+    document.body.appendChild(tmp);
+    tmp.select();
+    document.execCommand("copy");
+    tmp.remove();
+  }
+  helperContext.textContent = "Copiado: " + value;
 }
+
+let composing = false;
+
+editor.addEventListener("compositionstart", () => {
+  composing = true;
+});
+
+editor.addEventListener("compositionend", () => {
+  composing = false;
+  updateHelperPanel();
+});
+
+let autoTimer = null;
+
+function scheduleUpdate() {
+  if (composing) return;
+  clearTimeout(autoTimer);
+  autoTimer = setTimeout(updateHelperPanel, 50);
+}
+
+editor.addEventListener("beforeinput", (e) => {
+  if (composing) return;
+  if (
+    e.inputType.startsWith("insert") ||
+    e.inputType === "deleteContentBackward"
+  ) {
+    requestAnimationFrame(scheduleUpdate);
+  }
+});
 
 window.addEventListener("DOMContentLoaded", () => {
   if (!editor) {
@@ -153,14 +222,11 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 function applyautocomple(enabled) {
   if (enabled) {
-    editor.addEventListener("keyup", updateHelperPanel);
+    editor.addEventListener("input", scheduleUpdate);
     editor.addEventListener("click", updateHelperPanel);
-    helperList.style.display = "block";
-    helperContext.style.display = "block";
   } else {
-    editor.removeEventListener("keyup", updateHelperPanel);
+    editor.removeEventListener("input", scheduleUpdate);
     editor.removeEventListener("click", updateHelperPanel);
-    helperList.style.display = "none";
-    helperContext.style.display = "none";
+    xmml_help.style.display = "none";
   }
 }

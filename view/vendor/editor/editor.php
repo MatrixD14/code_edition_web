@@ -13,6 +13,7 @@ $login->protect();
         <link rel="stylesheet" href="./css/color_text.css">
         <link rel="stylesheet" href="./css/terminal_style.css">
         <link rel="stylesheet" href="./css/confing.css">
+        <link rel="stylesheet" href="./css/autocomplete.css">
         <link rel="stylesheet" href="./css/menu_xml.css">
         <title>editor</title>
     </head>

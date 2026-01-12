@@ -1,11 +1,14 @@
 body {
   background: #222;
-  height: 100vh;
+  margin: 0;
+}
+.box {
+  display: flex;
+  flex-direction: column;
+  /* height: 100vh; */
   height: 100dvh;
   align-items: center;
   justify-content: center;
-  display: flex;
-  margin: 0;
 }
 .error {
   background-color: #fff;
