@@ -33,7 +33,9 @@ $login->protect();
                         <label for="upload_projeto" id="btn_upload_projeto" style="cursor:pointer;">⬆️</label>
                         <input type="file" id="upload_projeto" name="file[]" webkitdirectory directory multiple style="display:none;">
                     </li>
-                    
+                    <li title="baixa import java">
+                        <a href="../../../model/editor/lista_java.php">📥</a>
+                    </li>
                 </ul>
             <ul class="menu_bottom">
                 <li title="Configurações" class="config_settings">⚙️</li>
@@ -106,6 +108,9 @@ $login->protect();
                         autocomplete: <?= json_encode($ativaAutocomple) ?>,
                         fontsizevalue: <?= json_encode($fontsize)?>
                     };
+                    <?php if(!empty($_SESSION["list_java"])){ ?>
+                    alert(<?= json_encode($_SESSION["list_java"]) ?>);
+                    <?php }?>
                 </script>
                 <script src="./js/variaveis.js"></script>
                 <script src="./js/conf_system.js"></script>
@@ -117,6 +122,7 @@ $login->protect();
                 <script src="./js/preview/preview.js"></script>
                 <script src="../preview/js/variaveis.js"></script>
                 <script src="./js/autocomplete/variaveis.js"></script>
+                <script src="./js/autocomplete/list_java.js"></script>
                 <script src="./js/autocomplete/autocomplet.js"></script>
       </body>
 </html>

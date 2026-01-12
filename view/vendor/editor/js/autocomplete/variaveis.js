@@ -102,11 +102,19 @@ const xml_resouc = {
   },
   drawable: {
     prefix: "@drawable/",
-    values: [""],
+    values: [],
   },
   style: {
     prefix: "@style/",
-    values: [""],
+    values: [],
+  },
+  xmlnsTools: {
+    prefix: "http://schemas.android.com/tools",
+    values: [],
+  },
+  xmlnsAndroid: {
+    prefix: "http://schemas.android.com/apk/res/android",
+    values: [],
   },
 };
 const xml_values = {
@@ -117,9 +125,38 @@ const xml_values = {
   orientation: ["horizontal", "vertical"],
   gravity: ["start", "end", "center", "center_vertical", "center_horizontal"],
   ellipsize: ["start", "middle", "end", "marquee"],
+  maxLines: ["1", "2", "5", "10"],
+  textStyle: ["normal", "bold", "italic", "bold|italic"],
   textSize: ["12sp", "14sp", "16sp", "20sp", "30sp", "40sp"],
   background: ["@color/", "@drawable/"],
+  src: ["@drawable/"],
   textColor: ["@color/"],
   id: ["@+id/"],
   style: ["@style/"],
+  layout_margin: ["5dp", "10dp", "20dp", "30dp"],
+  layout_marginTop: ["5dp", "10dp", "20dp", "30dp"],
+  layout_marginBottom: ["5dp", "10dp", "20dp", "30dp"],
+  layout_marginStart: ["5dp", "10dp", "20dp", "30dp"],
+  layout_marginEnd: ["5dp", "10dp", "20dp", "30dp"],
+  padding: ["5dp", "10dp", "20dp", "30dp"],
+  paddingTop: ["5dp", "10dp", "20dp", "30dp"],
+  paddingBottom: ["5dp", "10dp", "20dp", "30dp"],
+  paddingStart: ["5dp", "10dp", "20dp", "30dp"],
+  paddingEnd: ["5dp", "10dp", "20dp", "30dp"],
+  alpha: ["0.0", "0.5", "1.0"],
+  text: [],
 };
+
+// const java_imports = [
+//   "android.app.Activity",
+//   "android.app.Application",
+//   "android.content.Context",
+//   "android.os.Bundle",
+//   "android.view.View",
+//   "android.view.ViewGroup",
+//   "android.widget.TextView",
+//   "android.widget.Button",
+//   "java.util.List",
+//   "java.util.ArrayList",
+//   "java.util.Map",
+// ];

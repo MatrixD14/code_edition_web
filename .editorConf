@@ -1,8 +1,14 @@
 [accounts]
 tt = 1
+
+[android]
+sdk_path=
+
 [path_htdoc]
 HTDOC=/htdoc
+
 [fontSize]
 size=16
+
 [autoComple]
 autocomple=true

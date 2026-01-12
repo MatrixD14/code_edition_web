@@ -2,6 +2,7 @@ const editor = document.getElementById("code-input");
 const helperList = document.getElementById("xml-list");
 const helperContext = document.getElementById("xml-context");
 const xmml_help = document.getElementById("xml-help");
+let max_list_mostrado = 250;
 
 function getAttrs(tag) {
   let list = [];
@@ -24,14 +25,17 @@ function StyleAttrs() {
   });
   return [...new Set(list)];
 }
+let TAG_CACHE = null;
 function getTags() {
+  if (TAG_CACHE) return TAG_CACHE;
   let tags = new Set();
 
   Object.values(xml_tag).forEach((ns) => {
     if (!ns.views) return;
     Object.keys(ns.views).forEach((tag) => tags.add(tag));
   });
-  return [...tags];
+  TAG_CACHE = [...tags];
+  return TAG_CACHE;
 }
 
 function getXmlContext(text, cursor) {
@@ -46,6 +50,11 @@ function getCurrentWord(text, cursor) {
   const match = before.match(/([a-zA-Z0-9_:@\-]+)$/);
   return match ? match[1] : "";
 }
+function getItemTypedValue(text, cursor) {
+  const before = text.slice(0, cursor);
+  const match = before.match(/<item[^>]*>([^<]*)$/);
+  return match ? match[1].trim() : "";
+}
 function getCurrentAttr(text, cursor) {
   const before = text.slice(0, cursor);
   const match = before.match(/([\w:]+)\s*=\s*"[^"]*$/);
@@ -56,6 +65,17 @@ function getCurrentAttr(text, cursor) {
 function isInsideValue(text, cursor) {
   const before = text.slice(0, cursor);
   return /="[^"]*$/.test(before);
+}
+function isInsideItemValue(text, cursor) {
+  const before = text.slice(0, cursor);
+  return /<item[^>]*>[^<]*$/.test(before);
+}
+function getItemName(text, cursor) {
+  const before = text.slice(0, cursor);
+  const matches = [...before.matchAll(/<item[^>]*name="([^"]+)"/g)];
+  if (!matches.length) return null;
+  const last = matches[matches.length - 1][1];
+  return last.replace(/^android:/, "");
 }
 
 function getCurrentValue(text, cursor) {
@@ -74,6 +94,16 @@ function getCurrentTag(text, cursor) {
   const match = before.match(/<([\w:.]+)[^>]*$/);
   return match ? match[1].split(".").pop() : null;
 }
+//java
+function getJavaImportContext(text, cursor) {
+  const before = text.slice(0, cursor);
+  const match = before.match(/import\s+([a-zA-Z0-9_.]*)$/);
+  if (!match) return null;
+
+  return {
+    typed: match[1] || "",
+  };
+}
 
 function updateHelperPanel() {
   if (!editor) return;
@@ -82,12 +112,15 @@ function updateHelperPanel() {
   const cursor = editor.selectionStart;
 
   const context = getXmlContext(text, cursor);
+  const isInsideItem = isInsideItemValue(text, cursor);
+  const JavaImport = getJavaImportContext(text, cursor);
   helperList.innerHTML = "";
 
-  if (!context) {
+  if (!context && !isInsideItem && !JavaImport) {
     xmml_help.style.display = "none";
     return;
-  } else if (context !== " ") xmml_help.style.display = "flex";
+  }
+  xmml_help.style.display = "flex";
 
   const currentWord = getCurrentWord(text, cursor);
   const word = currentWord || "";
@@ -95,9 +128,28 @@ function updateHelperPanel() {
   let typesms,
     items = [];
 
-  if (isStyleItemName(text, cursor)) {
+  if (JavaImport) {
+    typesms = "imports java";
+    items = java_imports;
+    if (JavaImport.typed) {
+      items = items.filter((i) =>
+        i.toLowerCase().startsWith(JavaImport.typed.toLowerCase())
+      );
+    }
+  } else if (isStyleItemName(text, cursor)) {
     typesms = "atributos de style (android)";
     items = StyleAttrs();
+  } else if (isInsideItem) {
+    typesms = "valores do style";
+    const itemName = getItemName(text, cursor);
+    const typed = getItemTypedValue(text, cursor);
+    if (itemName && xml_values[itemName]) items = xml_values[itemName];
+    else items = [];
+    if (typed) {
+      items = items.filter((v) =>
+        v.toLowerCase().startsWith(typed.toLowerCase())
+      );
+    }
   } else if (isInsideValue(text, cursor)) {
     typesms = "valores";
     let attr = getCurrentAttr(text, cursor);
@@ -135,7 +187,12 @@ function updateHelperPanel() {
   }
   helperContext.textContent = typesms;
 
-  if (!isStyleItemName(text, cursor) && !isInsideValue(text, cursor)) {
+  if (
+    !JavaImport &&
+    !isStyleItemName(text, cursor) &&
+    !isInsideValue(text, cursor) &&
+    !isInsideItem
+  ) {
     if (context === "attr" && currentWord.includes(":")) {
       const typed = currentWord.split(":")[1] || "";
       items = items.filter((i) =>
@@ -153,7 +210,13 @@ function updateHelperPanel() {
     helperContext.textContent = "";
     return;
   }
-  items.forEach((item) => {
+  if (items.length > max_list_mostrado) {
+    const more = document.createElement("li");
+    more.textContent = `...e mais ${items.length - max_list_mostrado} itens`;
+    helperList.appendChild(more);
+  }
+
+  items.slice(0, max_list_mostrado).forEach((item) => {
     const li = document.createElement("li");
     li.textContent = item;
     li.style.listStyleType = "none";
