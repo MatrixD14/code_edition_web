@@ -2,7 +2,7 @@
 tt = 1
 
 [android]
-sdk_path=
+sdk_path=/home/matrix/Android/Sdk/
 
 [path_htdoc]
 HTDOC=/htdoc

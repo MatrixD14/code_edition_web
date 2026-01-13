@@ -11,7 +11,7 @@ if(!is_dir($sdkPath))voltapagina("caminho invalido: $sdkPath");
 $platforms = glob($sdkPath . DIRECTORY_SEPARATOR . 'platforms' . DIRECTORY_SEPARATOR . 'android-*');
 if (!$platforms) voltapagina("Nenhuma plataforma android-* encontrada em $sdkPath/platforms\n");
 
-$jsFile = __DIR__ . '/../../view/vendor/editor/js/autocomplete/list_java.js';
+$jsFile = __DIR__ . '/../../view/vendor/editor/js/autocomplete/list_lib_java.js';
 file_put_contents($jsFile, "");
 
 foreach ($platforms as $platformPath) {
@@ -48,4 +48,4 @@ foreach ($platforms as $platformPath) {
         file_put_contents($jsFile, $fileContent, FILE_APPEND);
     }
 }
-voltapagina("Listagem concluída em list_java.js\n");
+voltapagina("Listagem concluída em list_lib_java.js\n");

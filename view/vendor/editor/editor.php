@@ -103,20 +103,22 @@ $login->protect();
                 </div>
             </div>
         </div>
-               <?php if(isset($_SESSION["list_java"])){ ?>
-                    <script>
-                        alert(<?= json_encode($_SESSION["list_java"]) ?>);
-                    </script>
-                <?php 
-                    unset($_SESSION["list_java"]);
-                }?>
+               
                 <script>
                     window.EDITOR_CONFIG = {
                         autocomplete: <?= json_encode($ativaAutocomple) ?>,
                         fontsizevalue: <?= json_encode($fontsize)?>
                     };
+                    <?php if(isset($_SESSION["list_java"])){ ?>
+                        alert(<?= json_encode($_SESSION["list_java"]) ?>);
+                    <?php 
+                        unset($_SESSION["list_java"]);
+                    }?>
                 </script>
                 <script src="./js/variaveis.js"></script>
+                <script src="./js/autocomplete/list_tag_xml.js"></script>
+                <script src="./js/autocomplete/list_base_java.js"></script>
+                <script src="./js/autocomplete/list_lib_java.js"></script>
                 <script src="./js/conf_system.js"></script>
                 <script src="./js/highlighter.js"></script>
                 <script src="./js/list_path_editor.js"></script>
@@ -125,8 +127,8 @@ $login->protect();
                 <script src="./js/fullscreen.js"></script>
                 <script src="./js/preview/preview.js"></script>
                 <script src="../preview/js/variaveis.js"></script>
-                <script src="./js/autocomplete/variaveis.js"></script>
-                <script src="./js/autocomplete/list_java.js"></script>
+                <script src="./js/autocomplete/function_java.js"></script>
+                <script src="./js/autocomplete/function_xml.js"></script>
                 <script src="./js/autocomplete/autocomplet.js"></script>
       </body>
 </html>

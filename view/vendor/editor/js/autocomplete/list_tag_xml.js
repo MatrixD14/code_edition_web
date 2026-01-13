@@ -1,6 +1,6 @@
-const xml_tag = {
+window.xml_tag_duplic = {
   android: {
-    prefix: "android:",
+    // prefix: "android:",
     base: [
       "id",
       "layout_width",
@@ -22,7 +22,16 @@ const xml_tag = {
     views: {
       LinearLayout: ["orientation", "gravity", "weightSum"],
 
-      TextView: ["text", "textColor", "textSize", "textStyle", "gravity"],
+      TextView: [
+        "text",
+        "textColor",
+        "textSize",
+        "textStyle",
+        "gravity",
+        "ellipsize",
+        "singleLine",
+        "maxLines",
+      ],
 
       EditText: ["hint", "inputType", "textColor", "textSize"],
 
@@ -31,33 +40,9 @@ const xml_tag = {
       Button: ["text", "textAllCaps"],
     },
   },
-  atribPadrao: {
-    prefix: "name=",
-    base: [],
-    views: {
-      color: [],
-      string: [],
-      style: [],
-      item: [],
-    },
-  },
-  style: {
-    prefix: "parent=",
-    base: [],
-    views: {},
-  },
-  xmlns: {
-    prefix: "xmlns:",
-    base: ["android", "tools"],
-    views: {},
-  },
-  tools: {
-    prefix: "tools:",
-    base: ["context", "ignore", "targetApi"],
-    views: {},
-  },
+
   drawable: {
-    prefix: "android:",
+    // prefix: "android:",
     base: [
       "color",
       "width",
@@ -95,7 +80,29 @@ const xml_tag = {
     },
   },
 };
-const xml_resouc = {
+window.xml_tag = {
+  xmlns: {
+    // prefix: "xmlns:",
+    base: ["android", "tools"],
+    views: {},
+  },
+  tools: {
+    // prefix: "tools:",
+    base: ["context", "ignore", "targetApi"],
+    views: {},
+  },
+};
+const NS_PREFIX = {
+  android: "android:",
+  drawable: "android:",
+  tools: "tools:",
+  xmlns: "xmlns:",
+  atribPadrao: "name=",
+  style: "parent=",
+  styles: "style=",
+};
+
+window.xml_resouc = {
   color: {
     prefix: "@color/",
     values: ["#ffffffff", "#ff000000"],
@@ -117,7 +124,8 @@ const xml_resouc = {
     values: [],
   },
 };
-const xml_values = {
+
+window.xml_values = {
   layout_width: ["match_parent", "wrap_content", "0dp"],
   layout_height: ["match_parent", "wrap_content", "0dp"],
   layout_weight: ["0", "0.5", "1"],
@@ -125,6 +133,7 @@ const xml_values = {
   orientation: ["horizontal", "vertical"],
   gravity: ["start", "end", "center", "center_vertical", "center_horizontal"],
   ellipsize: ["start", "middle", "end", "marquee"],
+  singleLine: ["true", "false"],
   maxLines: ["1", "2", "5", "10"],
   textStyle: ["normal", "bold", "italic", "bold|italic"],
   textSize: ["12sp", "14sp", "16sp", "20sp", "30sp", "40sp"],
@@ -144,19 +153,5 @@ const xml_values = {
   paddingStart: ["5dp", "10dp", "20dp", "30dp"],
   paddingEnd: ["5dp", "10dp", "20dp", "30dp"],
   alpha: ["0.0", "0.5", "1.0"],
-  text: [],
+  text: ["@string/"],
 };
-
-// const java_imports = [
-//   "android.app.Activity",
-//   "android.app.Application",
-//   "android.content.Context",
-//   "android.os.Bundle",
-//   "android.view.View",
-//   "android.view.ViewGroup",
-//   "android.widget.TextView",
-//   "android.widget.Button",
-//   "java.util.List",
-//   "java.util.ArrayList",
-//   "java.util.Map",
-// ];
