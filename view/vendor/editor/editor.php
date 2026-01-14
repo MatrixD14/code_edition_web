@@ -33,8 +33,8 @@ $login->protect();
                         <label for="upload_projeto" id="btn_upload_projeto" style="cursor:pointer;">⬆️</label>
                         <input type="file" id="upload_projeto" name="file[]" webkitdirectory directory multiple style="display:none;">
                     </li>
-                    <li title="baixa import java">
-                        <a href="../../../model/editor/lista_java.php">📥</a>
+                    <li >
+                        <a id="btn-java-import">📥</a>
                     </li>
                 </ul>
             <ul class="menu_bottom">
@@ -123,6 +123,7 @@ $login->protect();
                 <script src="./js/highlighter.js"></script>
                 <script src="./js/list_path_editor.js"></script>
                 <script src="./js/upload_path_editor.js"></script>
+                <script src="./js/autocomplete/list_java_lib.js"></script>
                 <script src="./js/terminal.js"></script>
                 <script src="./js/fullscreen.js"></script>
                 <script src="./js/preview/preview.js"></script>

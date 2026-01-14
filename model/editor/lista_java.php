@@ -7,18 +7,20 @@ function voltapagina($sms){
     header("location: ../../view/vendor/editor/editor.php");
     exit;
 }
-if(!is_dir($sdkPath))voltapagina("caminho invalido: $sdkPath");
-$platforms = glob($sdkPath . DIRECTORY_SEPARATOR . 'platforms' . DIRECTORY_SEPARATOR . 'android-*');
-if (!$platforms) voltapagina("Nenhuma plataforma android-* encontrada em $sdkPath/platforms\n");
+$VersionAndroid = $_GET['version'] ?? null;
+if (!$VersionAndroid) voltapagina("Versão Android não informada");
 
+if(!is_dir($sdkPath))voltapagina("caminho invalido: $sdkPath");
+$platforms = $sdkPath . DIRECTORY_SEPARATOR . 'platforms' . DIRECTORY_SEPARATOR .$VersionAndroid;
+if (!is_dir($platforms)) voltapagina("Nenhuma plataforma $VersionAndroid encontrada em $sdkPath/platforms\n");
+
+$jar = $platforms . DIRECTORY_SEPARATOR . 'android.jar';
+if (!file_exists($jar))  voltapagina("android.jar não encontrado em $VersionAndroid");
 $jsFile = __DIR__ . '/../../view/vendor/editor/js/autocomplete/list_lib_java.js';
 file_put_contents($jsFile, "");
 
-foreach ($platforms as $platformPath) {
-    $jar = $platformPath . DIRECTORY_SEPARATOR . 'android.jar';
-    if (!file_exists($jar)) continue;
-
-    $classes = [];
+$totalClasses = 0;
+$classes = [];
 
     if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
         $zip = new ZipArchive;
@@ -34,18 +36,19 @@ foreach ($platforms as $platformPath) {
         }
     } else {
         $output = shell_exec("jar tf \"$jar\" | grep -E '\\.class\$' | grep -v '^META-INF/' | grep -v 'AndroidManifest.xml'");
-        $lines = array_filter(array_map('trim', explode("\n", $output)));
-        foreach ($lines as $line) {
+         foreach (explode("\n", trim($output)) as $line) {
         $classes[] = str_replace(['/', '.class', '$'], ['.', '', '.'], $line);
     }
     }
 
-    $classes = array_unique($classes);
+    $classes =  array_values(array_unique($classes));
     sort($classes);
+    $totalClasses = count($classes);
 
     if ($classes) {
-        $fileContent = "const java_imports = [\n  \"" . implode("\",\n  \"", $classes) . "\"\n];\n";
+        $fileContent = "const java_imports = [\n  '" . implode("',\n'", $classes) . "'\n];\n";
+        $fileContent .="window.versionAndroid = '$VersionAndroid';\n";
         file_put_contents($jsFile, $fileContent, FILE_APPEND);
     }
-}
-voltapagina("Listagem concluída em list_lib_java.js\n");
+
+voltapagina("Listagem concluída em list_lib_java.js | importor $totalClasses classes do $VersionAndroid \n");
