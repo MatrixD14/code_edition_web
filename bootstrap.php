@@ -5,7 +5,7 @@ ini_set('display_errors', '0');
 ini_set('log_errors','1');
 error_reporting(E_ALL);
 
-require_once 'model/editorConf.php';
+require_once 'app/model/editorConf.php';
 
 //carrega as cnfiguração definidas
 Env::load(__DIR__. '/.editorConf');
@@ -33,4 +33,26 @@ if (!$sdkPath){
    throw new RuntimeException("Digite o caminho do Android SDK no ./.editorConf : </br></br>[android]</br>sdk_path=?");
 }
 //login
-require_once 'model/login.php';
+require_once 'app/model/login.php';
+// define('ROOT_PATH', realpath(__DIR__));
+
+// spl_autoload_register(function ($class) {
+//     $paths = [
+//         ROOT_PATH . '/controller/',
+//         ROOT_PATH . '/model/',
+//     ];
+
+//     foreach ($paths as $path) {
+//         $file = $path . $class . '.php';
+//         if (file_exists($file)) {
+//             require_once $file;
+//             return;
+//         }
+//     }
+// });
+
+// require_once ROOT_PATH . '/app/model/editorConf.php';
+// Env::load(ROOT_PATH . '/.editorConf');
+
+// $htdoc = realpath(ROOT_PATH . Env::get('path_htdoc', '/HTDOC'));
+// define('HTDOC', $htdoc ?: '');
