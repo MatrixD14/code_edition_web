@@ -1,8 +1,58 @@
-const java_base = ['public', 'private', 'protected', 'static', 'final', 'class', 'interface', 'enum', 'extends', 'implements', 'new', 'this', 'super', 'return', 'break', 'continue', 'default', 'finally', 'throw', 'throws', 'int', 'float', 'double', 'char', 'boolean', 'byte', 'long', 'void', 'String', 'Object', 'Integer', 'Boolean', 'Long', 'Float', 'Double', 'List', 'ArrayList', 'Map', 'HashMap', 'Set', 'HashSet', 'Thread', 'Runnable', 'Exception', 'RuntimeException', 'IOException'];
+const java_base = [
+    'public',
+    'private',
+    'protected',
+    'import',
+    'package',
+    'static',
+    'final',
+    'class',
+    'interface',
+    'enum',
+    'extends',
+    'implements',
+    'new',
+    'this',
+    'super',
+    'return',
+    'break',
+    'continue',
+    'case  :',
+    'default:',
+    'finally',
+    'throw',
+    'throws',
+    'int',
+    'float',
+    'double',
+    'char',
+    'boolean',
+    'byte',
+    'long',
+    'void',
+    'String',
+    'Object',
+    'Integer',
+    'Boolean',
+    'Long',
+    'Float',
+    'Double',
+    'List',
+    'ArrayList',
+    'Map',
+    'HashMap',
+    'Set',
+    'HashSet',
+    'Thread',
+    'Runnable',
+    'Exception',
+    'RuntimeException',
+    'IOException',
+];
 
-const java_snippets = ['for (int i = 0; i < ; i++) {\n\n}', 'for( ){\n\n}', 'if ( ) {\n\n}', 'if ( ) {\n\n} else {\n\n}', 'while ( ) {\n\n}', 'try{\n\n} catch( ) {\n\n}', 'try{\n\n}finally{\n\n}', 'try{\n\n} catch( ) {\n\n}finally{\n\n}', 'switch( ){\ncase  :\n}', 'switch( ){\ncase  :\ndefault:\n}', 'do{\n\n}while( );'];
+const java_snippets = ['for (int i = 0; i < ; i++) {\n\n}', 'for( : ){\n\n}', 'if ( ) {\n\n}', 'if ( ) {\n\n} else {\n\n}', 'while ( ) {\n\n}', 'try{\n\n} catch( ) {\n\n}', 'try{\n\n}finally{\n\n}', 'try{\n\n} catch( ) {\n\n}finally{\n\n}', 'switch( ){\ncase  :\n}', 'switch( ){\ncase  :\nbreak;\ndefault:\nbreak;\n}', 'do{\n\n}while( );', 'setOnClickListener(new View.OnClickListener(){\n@Override\npublic void onClick(View v){\n\n});'];
 
-const java_string_methods = ['length()', 'isEmpty()', 'substring()', 'toString()', 'equals()', 'equalsIgnoreCase()', 'contains()', 'startsWith()', 'endsWith()', 'trim()', 'append()'];
+const java_string_methods = ['length()', 'isEmpty()', 'substring()', 'toString()', 'equals( )', 'equalsIgnoreCase()', 'contains()', 'startsWith()', 'endsWith()', 'trim()', 'append( )', 'setOnClickListener( )', 'OnClickListener()', 'findViewById( )', 'isNaN( )', 'getText()', 'setText( )', 'getId()'];
 
 const android_xml_views = [
     'AbsListView',
@@ -52,6 +102,7 @@ const android_xml_views = [
     'ViewSwitcher',
 ];
 const android_not_xml = [
+    'R.id.',
     'AbsoluteLayout',
     'Adapter',
     'AdapterView',

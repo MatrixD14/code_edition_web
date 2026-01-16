@@ -3,10 +3,13 @@ if(session_status() === PHP_SESSION_NONE) session_start();
 require_once '../../../bootstrap.php';
 
 function voltapagina($sms){
-    $_SESSION["list_java"]= $sms;
-    header("location: ../../view/vendor/editor/editor.php");
+    if (ob_get_length()) ob_clean();
+    header('Content-Type: text/plain; charset=utf-8');
+    echo $sms;
     exit;
 }
+$totalClasses = 0;
+$classes = [];
 $VersionAndroid = $_GET['version'] ?? null;
 if (!$VersionAndroid) voltapagina("Versão Android não informada");
 
@@ -18,9 +21,6 @@ $jar = $platforms . DIRECTORY_SEPARATOR . 'android.jar';
 if (!file_exists($jar))  voltapagina("android.jar não encontrado em $VersionAndroid");
 $jsFile = __DIR__ . '/../../view/vendor/editor/js/autocomplete/list_lib_java.js';
 file_put_contents($jsFile, "");
-
-$totalClasses = 0;
-$classes = [];
 
     if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
         $zip = new ZipArchive;
@@ -44,11 +44,15 @@ $classes = [];
     $classes =  array_values(array_unique($classes));
     sort($classes);
     $totalClasses = count($classes);
-
-    if ($classes) {
-        $fileContent = "const java_imports = [\n  '" . implode("',\n'", $classes) . "'\n];\n";
-        $fileContent .="window.versionAndroid = '$VersionAndroid';\n";
-        file_put_contents($jsFile, $fileContent, FILE_APPEND);
+    $android="";
+    $java="";
+    foreach ($classes as $c) {
+            if (str_starts_with($c, 'android.R'))  $android .= "  '" . str_replace('android.','',$c). "',\n";
+            else $java .= "  '" . $c . "',\n";
     }
-
+        $fileContent = "var java_imports = [\n".rtrim($java,",\n")."\n];\n";
+        $fileContent .= "var android_imports = [\n".rtrim($android,",\n")."\n];\n";
+        $fileContent .="window.versionAndroid = '$VersionAndroid';\n";
+        file_put_contents($jsFile, $fileContent);
+        
 voltapagina("Listagem concluída em list_lib_java.js | importor $totalClasses classes do $VersionAndroid \n");

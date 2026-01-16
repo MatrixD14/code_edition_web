@@ -21,7 +21,7 @@ function getJavaContext(text, cursor) {
 
     if (line.startsWith('import ')) return { type: 'import', ctx: getJavaImportContext(text, cursor) };
 
-    const match = line.match(/([a-zA-Z_][a-zA-Z0-9_]*)$/);
+    const match = line.match(/([a-zA-Z_][a-zA-Z0-9_\.]*)$/);
     if (match) return { type: 'code', prefix: match[1] };
     return null;
 }
@@ -81,10 +81,11 @@ function trataJavaSnippets(prefix) {
 function trataJavaMethods(prefix) {
     const res = [];
     const p = prefix.toLowerCase();
-
+    const partes = p.split('.');
+    const busca = partes[partes.length - 1];
     for (const m of java_string_methods) {
         if (res.length >= maxs) break;
-        if (m.toLowerCase().startsWith(p)) res.push(m);
+        if (busca === '' || m.toLowerCase().startsWith(busca)) res.push(m);
     }
     if (!res.length) return null;
     return {
@@ -120,7 +121,22 @@ function trataJavaNoXML(prefix) {
         typesms: 'class',
     };
 }
-const candidates = [trataJavaSnippets, trataJavaMethods, trataJavaBase, trataJavaBaseXML, trataJavaNoXML];
+function trataAndroidR(prefix) {
+    if (!prefix) return null;
+    const res = [];
+    const p = prefix.toLowerCase();
+
+    for (const m of android_imports) {
+        if (res.length >= maxs) break;
+        if (m.toLowerCase().startsWith(p)) res.push(m);
+    }
+    if (!res.length) return null;
+    return {
+        items: res,
+        typesms: 'Resources',
+    };
+}
+const candidates = [trataJavaSnippets, trataJavaMethods, trataJavaBase, trataJavaBaseXML, trataJavaNoXML, trataAndroidR];
 function unirMethods(ctx) {
     const items = [];
     const types = [];
