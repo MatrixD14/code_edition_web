@@ -12,12 +12,7 @@ if (!$file || empty($relativePath)) {
 $targetPath = HTDOC . DIRECTORY_SEPARATOR . $relativePath;
 $targetDir = dirname($targetPath);
 
-if (!is_dir($targetDir)) {
-    mkdir($targetDir, 0777, true);
-}
+if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
 
-if (move_uploaded_file($file['tmp_name'], $targetPath)) {
-    echo json_encode(['status' => 'success']);
-} else {
-    echo json_encode(['status' => 'error', 'message' => 'Falha ao mover arquivo']);
-}
+if (move_uploaded_file($file['tmp_name'], $targetPath)) echo json_encode(['status' => 'success']);
+    else echo json_encode(['status' => 'error', 'message' => 'Falha ao mover arquivo']);

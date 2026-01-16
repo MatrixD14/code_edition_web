@@ -13,7 +13,6 @@ $data = [];
 
 foreach (scandir($path) as $f) {
     if ($f[0] === '.') continue;
-
     $full = "$path/$f";
     $ext = is_dir($full) ? null : strtolower(pathinfo($f, PATHINFO_EXTENSION));
     $data[] = [
