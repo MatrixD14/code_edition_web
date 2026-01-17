@@ -36,7 +36,8 @@ async function pickAndroidVersion() {
 document.addEventListener('DOMContentLoaded', () => {
     const btn = document.getElementById('btn-java-import');
     if (!btn) return;
-    const version = typeof window.versionAndroid !== 'undefined' ? window.versionAndroid : localStorage.getItem('androidVersion');
+    const version =
+        typeof window.versionAndroid !== 'undefined' ? window.versionAndroid : localStorage.getItem('androidVersion');
 
     if (version) btn.title = 'Imports Java carregados: ' + version;
 

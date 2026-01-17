@@ -1,26 +1,26 @@
 #xml-quick {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 999;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
 }
 #xml-quick.hidden {
-  display: none;
+    display: none;
 }
 
 .xml-quick-box {
-  background: #1e1e1e;
-  border-radius: 8px;
-  padding: 10px;
-  min-width: 220px;
+    background: #1e1e1e;
+    border-radius: 8px;
+    padding: 10px;
+    min-width: 220px;
 }
 .xml-quick-box div {
-  padding: 8px;
-  cursor: pointer;
+    padding: 8px;
+    cursor: pointer;
 }
 .xml-quick-box div:hover {
-  background: #333;
+    background: #333;
 }

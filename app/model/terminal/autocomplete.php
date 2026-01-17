@@ -18,7 +18,7 @@ $suggestions = [];
 
 foreach ($files as $file) {
     if ($file === '.' || $file === '..') continue;
-    
+
     if (stripos($file, $partial) === 0) {
         $suggestions[] = is_dir($currentDir . DIRECTORY_SEPARATOR . $file) ? $file . '/' : $file;
     }

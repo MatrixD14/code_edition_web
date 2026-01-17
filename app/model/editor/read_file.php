@@ -11,7 +11,7 @@ if (!$file) {
 }
 $base = realpath(HTDOC);
 if (str_starts_with($file, '/')) $path = realpath($file);
- else  $path = realpath($base . '/' . $file);
+else  $path = realpath($base . '/' . $file);
 
 if (!$path || !is_file($path) || strpos($path, $base) !== 0) {
     http_response_code(403);

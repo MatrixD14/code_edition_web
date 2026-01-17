@@ -4,7 +4,10 @@ let state = {
 };
 let currentSelectedPath = '';
 
-ui.file_push_open.addEventListener('click', () => (ui.painel_path.style.display = ui.painel_path.style.display === 'none' ? 'block' : 'none'));
+ui.file_push_open.addEventListener(
+    'click',
+    () => (ui.painel_path.style.display = ui.painel_path.style.display === 'none' ? 'block' : 'none'),
+);
 ui.btnOpenProject.addEventListener('click', async (e) => {
     e.stopPropagation();
     ui.projectSelector.classList.toggle('hidden');

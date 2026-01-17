@@ -1,9 +1,11 @@
 <?php
-class Env {
+class Env
+{
     private static array $data = [];
     private static bool $loaded = false;
 
-    public static function load(string $path = __DIR__ . '/.editorConf'): void {
+    public static function load(string $path = __DIR__ . '/.editorConf'): void
+    {
         if (self::$loaded) return;
         if (!file_exists($path)) throw new Exception(".editorConf não encontrado");
 
@@ -29,7 +31,8 @@ class Env {
         self::$loaded = true;
     }
 
-    public static function get(string $section, ?string $key = null, $default = null) {
+    public static function get(string $section, ?string $key = null, $default = null)
+    {
         if (!isset(self::$data[$section])) return $default;
         if ($key === null) return self::$data[$section];
         return self::$data[$section][$key] ?? $default;

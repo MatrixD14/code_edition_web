@@ -20,7 +20,8 @@ if (!$fullPath || strpos($fullPath, realpath(HTDOC)) !== 0) {
 
 try {
     if (is_dir($fullPath)) {
-        function deleteDir($dirPath) {
+        function deleteDir($dirPath)
+        {
             foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dirPath, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::CHILD_FIRST) as $item) {
                 $item->isDir() ? rmdir($item->getPathname()) : unlink($item->getPathname());
             }

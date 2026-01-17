@@ -136,7 +136,14 @@ function trataAndroidR(prefix) {
         typesms: 'Resources',
     };
 }
-const candidates = [trataJavaSnippets, trataJavaMethods, trataJavaBase, trataJavaBaseXML, trataJavaNoXML, trataAndroidR];
+const candidates = [
+    trataJavaSnippets,
+    trataJavaMethods,
+    trataJavaBase,
+    trataJavaBaseXML,
+    trataJavaNoXML,
+    trataAndroidR,
+];
 function unirMethods(ctx) {
     const items = [];
     const types = [];

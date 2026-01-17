@@ -29,7 +29,7 @@ if ($type === 'folder') {
         $content = "";
         $extension = pathinfo($targetPath, PATHINFO_EXTENSION);
         $fileNameOnly = pathinfo($targetPath, PATHINFO_FILENAME);
-        switch($extension){
+        switch ($extension) {
             case "xml":
                 $xmlType = $data['xmlType'] ?? null;
                 if ($extension === "xml") $content = xmlTemplate($xmlType);
@@ -42,11 +42,12 @@ if ($type === 'folder') {
                 if ($srcIndex !== false) {
                     $packageArray = array_slice($pathParts, $srcIndex + 1, -1);
                     $packageName = implode('.', $packageArray);
-                    
-                    $rootPackage = (count($packageArray) >= 3) 
+
+                    $rootPackage = (count($packageArray) >= 3)
                         ? $packageArray[0] . '.' . $packageArray[1] . '.' . $packageArray[2]
-                        : $packageName;}
-                        $content = "package {$packageName};\n\nimport {$rootPackage}.R;\nimport android.app.Activity;\nimport android.os.Bundle;\npublic class {$fileNameOnly} extends Activity {\n\n  @Override\n  protected void onCreate(Bundle b) {\n    super.onCreate(b);\n  }\n}";
+                        : $packageName;
+                }
+                $content = "package {$packageName};\n\nimport {$rootPackage}.R;\nimport android.app.Activity;\nimport android.os.Bundle;\npublic class {$fileNameOnly} extends Activity {\n\n  @Override\n  protected void onCreate(Bundle b) {\n    super.onCreate(b);\n  }\n}";
                 break;
         }
         file_put_contents($targetPath, $content);
@@ -55,27 +56,28 @@ if ($type === 'folder') {
         echo json_encode(['status' => 'error', 'message' => 'Arquivo já existe.']);
     }
 }
-function xmlTemplate($type) {
+function xmlTemplate($type)
+{
     switch ($type) {
         case 'layout':
-      return "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n  android:layout_width=\"match_parent\"\n  android:layout_height=\"match_parent\">\n\n</LinearLayout>";
+            return "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n  android:layout_width=\"match_parent\"\n  android:layout_height=\"match_parent\">\n\n</LinearLayout>";
 
-    case 'values':
-      return "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n\n</resources>";
+        case 'values':
+            return "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n\n</resources>";
 
-    case 'drawable:shape':
-      return "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<shape xmlns:android=\"http://schemas.android.com/apk/res/android\">\n</shape>";
+        case 'drawable:shape':
+            return "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<shape xmlns:android=\"http://schemas.android.com/apk/res/android\">\n</shape>";
 
-    case 'drawable:selector':
-      return "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<selector xmlns:android=\"http://schemas.android.com/apk/res/android\">\n</selector>";
+        case 'drawable:selector':
+            return "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<selector xmlns:android=\"http://schemas.android.com/apk/res/android\">\n</selector>";
 
-    case 'drawable:layerList':
-      return "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<layer-list xmlns:android=\"http://schemas.android.com/apk/res/android\">\n</layer-list>";
+        case 'drawable:layerList':
+            return "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<layer-list xmlns:android=\"http://schemas.android.com/apk/res/android\">\n</layer-list>";
 
-    case 'drawable:ripple':
-      return "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<ripple xmlns:android=\"http://schemas.android.com/apk/res/android\">\n</ripple>";
+        case 'drawable:ripple':
+            return "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<ripple xmlns:android=\"http://schemas.android.com/apk/res/android\">\n</ripple>";
 
-    default:
-      return "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n</resources>";
-  }
+        default:
+            return "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n</resources>";
+    }
 }
