@@ -244,8 +244,9 @@ body {
     white-space: pre;
     word-wrap: normal;
     box-sizing: border-box;
-    will-change: scroll-position;
-    contain: strict;
+    /* will-change: scroll-position; */
+    /* contain: strict; */
+    contain: layout paint;
 }
 
 .editor,
@@ -281,7 +282,7 @@ body {
     display: block;
     counter-reset: line;
     position: relative;
-    will-change: transform;
+    /* will-change: transform; */
     width: 100%;
     margin: 0;
     padding: 0;

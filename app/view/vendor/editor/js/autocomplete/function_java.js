@@ -27,8 +27,11 @@ function getJavaContext(text, cursor) {
 }
 
 function trataAtributoJava(ctx) {
-    const level = ctx.typedEndsWithDot ? ctx.parts.length : ctx.parts.length - 1;
-    const prefix = ctx.typedEndsWithDot ? '' : ctx.parts[ctx.parts.length - 1].toLowerCase();
+    if (!ctx || !Array.isArray(ctx.parts)) return null;
+    const forceShow = ctx.typedEndsWithDot === true;
+    const partsLen = ctx.parts.length;
+    const level = forceShow ? partsLen : partsLen - 1;
+    const prefix = forceShow ? '' : (ctx.parts[partsLen - 1] || '').toLowerCase();
     const results = new Set();
     for (const imp of java_imports_parts) {
         if (results.size >= maxs) break;
@@ -42,10 +45,15 @@ function trataAtributoJava(ctx) {
         }
         if (!ok) continue;
         const name = imp[level];
-        if (!prefix || name.toLowerCase().startsWith(prefix)) results.add(name);
+        if (!name) continue;
+        if (forceShow || name.toLowerCase().startsWith(prefix)) results.add(name);
     }
+    const items = [...results];
+    if (!items.length) return null;
+    if (!forceShow && items.length === 1 && items[0].toLowerCase() === prefix) return null;
+
     return {
-        items: [...results],
+        items: items,
         typesms: 'imports',
     };
 }
@@ -145,17 +153,23 @@ const candidates = [
     trataAndroidR,
 ];
 function unirMethods(ctx) {
+    const prefix = ctx.prefix || '';
+    const forceShow = prefix.endsWith('.');
+    if (!forceShow && prefix.length < 1) return null;
     const items = [];
     const types = [];
 
     for (const fn of candidates) {
         const result = fn(ctx.prefix);
-        if (!result) continue;
-        if (result.items?.length) items.push(...result.items);
+        if (!result || !result.items?.length) continue;
+        items.push(...result.items);
         if (result.typesms) types.push(result.typesms);
         if (items.length >= maxs) break;
     }
+
     if (!items.length) return null;
+    if (!forceShow && items.length === 1 && items[0].toLowerCase() === prefix.toLowerCase()) return null;
+
     return {
         items: items,
         typesms: types.join(' | '),

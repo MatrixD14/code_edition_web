@@ -11,27 +11,42 @@ function cleanvar() {
     helperList.textContent = '';
     helperContext.textContent = '';
 }
+// function getExtension(fileName) {
+//     if (!fileName) return '';
+//     const lastDot = fileName.lastIndexOf('.');
+//     if (lastDot <= 0) return '';
+//     return fileName.slice(lastDot + 1).toLowerCase();
+// }
 function updateHelperPanel() {
     if (!editor) return;
     const text = editor.value;
     const cursor = editor.selectionStart;
-
+    let fileName = editor.dataset.currentFile || '';
+    // const extension = getExtension(fileName);
+    // let isXML = ['html', 'xml', 'svg', 'manifest'].includes(extension) || fileName.endsWith('AndroidManifest.xml');
+    const schema = getSchemaByFile(fileName);
+    const isXML = !!schema;
     const lastChar = text[cursor - 1];
-    if (!/\w|\./.test(lastChar)) {
-        cleanvar();
-        return;
-    }
-    const ctx = getJavaContext(text, cursor);
-    if (!ctx) {
+    if (!/[a-zA-Z0-9_:\-@\.<=\/"' ]/.test(lastChar)) {
         cleanvar();
         return;
     }
 
     let result = null;
-    if (ctx.type === 'import' && ctx.ctx) {
-        result = trataAtributoJava(ctx.ctx);
-    } else if (ctx.type === 'code') {
-        result = unirMethods(ctx);
+    if (isXML) {
+        const ctx = getXMLContext(text, cursor);
+        if (ctx) result = unirXML(ctx, schema);
+    } else {
+        const ctx = getJavaContext(text, cursor);
+        if (!ctx) {
+            cleanvar();
+            return;
+        }
+        if (ctx.type === 'import' && ctx.ctx) {
+            result = trataAtributoJava(ctx.ctx);
+        } else if (ctx.type === 'code') {
+            result = unirMethods(ctx);
+        }
     }
     if (!result || !result.items.length) {
         cleanvar();

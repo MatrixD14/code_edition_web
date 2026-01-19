@@ -52,12 +52,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    function getExtension(fileName) {
+        if (!fileName) return '';
+        const lastDot = fileName.lastIndexOf('.');
+        if (lastDot <= 0) return '';
+        return fileName.slice(lastDot + 1).toLowerCase();
+    }
+
     function sendToWorker() {
         let msgId = ++lastMsgId;
         let rawValue = input.value;
 
         let fileName = input.dataset.currentFile || '';
-        let extension = fileName.split('.').pop().toLowerCase();
+        let extension = getExtension(fileName);
         if (rawValue.length > 50000 || extensionBloqueio.has(extension)) {
             output.textContent = rawValue;
             return;
