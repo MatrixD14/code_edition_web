@@ -1,7 +1,42 @@
 window.xml_tags = {
     layout: {
-        tags: ['LinearLayout', 'TextView', 'EditText', 'ImageView', 'Button'],
-        namespaces: ['android', 'tools'],
+        namespaces: ['android', 'tools', 'xmlns'],
+        tags: [
+            'LinearLayout',
+            'FrameLayout',
+            'RelativeLayout',
+            'ScrollView',
+            'HorizontalScrollView',
+            'TableLayout',
+            'TableRow',
+            'TextView',
+            'EditText',
+            'AutoCompleteTextView',
+            'MultiAutoCompleteTextView',
+            'Button',
+            'ImageButton',
+            'CheckBox',
+            'RadioButton',
+            'ToggleButton',
+            'Switch',
+            'RadioGroup',
+            'ImageView',
+            'ImageSwitcher',
+            'ViewSwitcher',
+            'ViewFlipper',
+            'ListView',
+            'GridView',
+            'Spinner',
+            'ExpandableListView',
+            'ProgressBar',
+            'SeekBar',
+            'RatingBar',
+            'CalendarView',
+            'TimePicker',
+            'SearchView',
+            'VideoView',
+            'Space',
+        ],
         baseAttrs: {
             android: [
                 'id',
@@ -21,8 +56,8 @@ window.xml_tags = {
                 'visibility',
                 'alpha',
             ],
-            tools: ['context', 'ignore', 'targetApi'],
         },
+
         tagAttrs: {
             LinearLayout: ['orientation', 'gravity', 'weightSum'],
             FrameLayout: ['foreground', 'foregroundGravity'],
@@ -89,29 +124,55 @@ window.xml_tags = {
     },
 
     drawable: {
-        tags: ['shape', 'selector', 'layer-list'],
+        namespaces: ['android', 'xmlns'],
+        tags: ['shape', 'selector', 'layer-list', 'solid', 'stroke', 'corners', 'padding', 'size', 'gradient', 'item'],
         tagAttrs: {
-            shape: ['shape'],
+            shape: ['shape', 'visible'],
+            selector: [],
+            'layer-list': [],
             solid: ['color'],
             stroke: ['width', 'color', 'dashWidth', 'dashGap'],
-            corners: ['radius', 'topLeftRadius', 'topRightRadius'],
+            corners: ['radius', 'topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius'],
             padding: ['left', 'top', 'right', 'bottom'],
             size: ['width', 'height'],
-            gradient: ['startColor', 'endColor', 'centerColor', 'angle', 'type'],
-            item: ['state_pressed', 'state_enabled', 'state_checked', 'drawable', 'top', 'bottom', 'left', 'right'],
+            gradient: [
+                'startColor',
+                'endColor',
+                'centerColor',
+                'centerX',
+                'centerY',
+                'angle',
+                'type',
+                'gradientRadius',
+            ],
+            item: [
+                'state_pressed',
+                'state_enabled',
+                'state_checked',
+                'state_selected',
+                'state_focused',
+                'drawable',
+                'top',
+                'bottom',
+                'left',
+                'right',
+                'width',
+                'height',
+            ],
         },
     },
+
     values: {
         strings: {
-            tags: ['string', 'plurals'],
+            tags: ['string', 'plurals', 'resources'],
             attrs: ['name'],
         },
         colors: {
-            tags: ['color'],
+            tags: ['color', 'resources'],
             attrs: ['name'],
         },
         styles: {
-            tags: ['style', 'item'],
+            tags: ['style', 'item', 'resources'],
             attrs: {
                 style: ['name', 'parent'],
                 item: ['name'],
@@ -119,6 +180,7 @@ window.xml_tags = {
         },
     },
     manifest: {
+        namespaces: ['android', 'xmlns'],
         tags: ['manifest', 'application', 'activity', 'category', 'intent-filter', 'uses-permission', 'uses-sdk'],
         attrs: {
             category: ['name'],
@@ -128,29 +190,6 @@ window.xml_tags = {
             'uses-sdk': ['minSdkVersion', 'targetSdkVersion'],
             application: ['name', 'icon', 'label', 'theme', 'allowBackup', 'supportsRtl', 'debuggable'],
         },
-    },
-};
-
-window.xml_resouc = {
-    color: {
-        prefix: '@color/',
-        values: ['#ffffffff', '#ff000000'],
-    },
-    drawable: {
-        prefix: '@drawable/',
-        values: [],
-    },
-    style: {
-        prefix: '@style/',
-        values: [],
-    },
-    xmlnsTools: {
-        prefix: 'http://schemas.android.com/tools',
-        values: [],
-    },
-    xmlnsAndroid: {
-        prefix: 'http://schemas.android.com/apk/res/android',
-        values: [],
     },
 };
 
@@ -210,9 +249,13 @@ window.attrValueType = {
     imeOptions: 'enums.imeOptions',
     text: 'refs.string',
     hint: 'refs.string',
+    label: 'refs.string',
     foreground: 'refs.drawable',
+    drawable: 'refs.drawable',
+    icon: 'refs.drawable',
     src: 'refs.drawable',
     backgroundTint: 'refs.color',
+    color: 'refs.color',
     textColor: 'refs.color',
     background: 'refs.background',
     layout_below: 'refs.id_ref',
@@ -244,6 +287,9 @@ window.attrValueType = {
     state_pressed: 'boolean',
     state_enabled: 'boolean',
     state_checked: 'boolean',
+    exported: 'boolean',
+    debuggable: 'boolean',
+    allowBackup: 'boolean',
     layout_weight: 'valoresFloat',
     alpha: 'valoresFloat',
     maxLines: 'valoresInt',
@@ -253,18 +299,30 @@ window.attrValueType = {
 
 window.xmlSchemas = {
     layout: {
+        allowNamespaces: window.xml_tags.layout.namespaces,
         tags: window.xml_tags.layout.tags,
         baseAttrs: window.xml_tags.layout.baseAttrs,
         tagAttrs: window.xml_tags.layout.tagAttrs,
     },
 
     drawable: {
+        allowNamespaces: window.xml_tags.drawable.namespaces,
         tags: window.xml_tags.drawable.tags,
         tagAttrs: window.xml_tags.drawable.tagAttrs,
     },
 
+    namespaces: {
+        tools: {
+            attrs: ['context', 'ignore', 'targetApi'],
+        },
+        xmlns: {
+            values: ['http://schemas.android.com/apk/res/android', 'http://schemas.android.com/tools'],
+            attrs: ['android', 'tools'],
+        },
+    },
     values: {
         strings: {
+            allowNamespaces: [],
             tags: window.xml_tags.values.strings.tags,
             tagAttrs: {
                 string: window.xml_tags.values.strings.attrs,
@@ -272,18 +330,21 @@ window.xmlSchemas = {
             },
         },
         colors: {
+            allowNamespaces: [],
             tags: window.xml_tags.values.colors.tags,
             tagAttrs: {
                 color: window.xml_tags.values.colors.attrs,
             },
         },
         styles: {
+            allowNamespaces: [],
             tags: window.xml_tags.values.styles.tags,
             tagAttrs: window.xml_tags.values.styles.attrs,
         },
     },
 
     manifest: {
+        allowNamespaces: window.xml_tags.manifest.namespaces,
         tags: window.xml_tags.manifest.tags,
         tagAttrs: window.xml_tags.manifest.attrs,
     },

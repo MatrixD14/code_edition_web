@@ -11,19 +11,11 @@ function cleanvar() {
     helperList.textContent = '';
     helperContext.textContent = '';
 }
-// function getExtension(fileName) {
-//     if (!fileName) return '';
-//     const lastDot = fileName.lastIndexOf('.');
-//     if (lastDot <= 0) return '';
-//     return fileName.slice(lastDot + 1).toLowerCase();
-// }
 function updateHelperPanel() {
     if (!editor) return;
     const text = editor.value;
     const cursor = editor.selectionStart;
     let fileName = editor.dataset.currentFile || '';
-    // const extension = getExtension(fileName);
-    // let isXML = ['html', 'xml', 'svg', 'manifest'].includes(extension) || fileName.endsWith('AndroidManifest.xml');
     const schema = getSchemaByFile(fileName);
     const isXML = !!schema;
     const lastChar = text[cursor - 1];

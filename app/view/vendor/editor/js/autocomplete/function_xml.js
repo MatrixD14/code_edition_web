@@ -90,6 +90,40 @@ function getXMLContext(text, cursor) {
     const state = scanXMLUntilCursor(text, cursor);
     const before = text.slice(0, cursor);
 
+    // tag
+    const tagMatch = before.match(/<([a-zA-Z0-9:_\-]*)$/);
+    const closingTagMatch = before.match(/<\/([a-zA-Z0-9:_\-]*)$/);
+    if (tagMatch || closingTagMatch) {
+        return {
+            type: 'tag',
+            prefix: tagMatch ? tagMatch[1] : closingTagMatch[1],
+        };
+    }
+    // style <item> value
+    if (!state.inTag && !state.inString) {
+        const itemMatch = before.match(/<item[^>]*name\s*=\s*"([^"]+)"[^>]*>([^<]*)$/);
+        if (itemMatch) {
+            return {
+                type: 'item-value',
+                attrName: itemMatch[1].replace(/^android:/, ''),
+                prefix: itemMatch[2] ?? '',
+                force: before.endsWith('>'),
+            };
+        }
+    }
+
+    // atributo
+    if (state.inTag && !state.inString && state.tagName) {
+        const m = before.match(/([a-zA-Z_:][a-zA-Z0-9:_\-]*)$/);
+        const prefix = m ? m[1] : '';
+        return {
+            type: 'attribute',
+            tagName: state.tagName,
+            namespace: state.namespace,
+            prefix,
+        };
+    }
+
     // valor de atributo
     if (state.inTag && state.inString && state.attrName) {
         const lastQuote = Math.max(before.lastIndexOf('"'), before.lastIndexOf("'"));
@@ -102,99 +136,120 @@ function getXMLContext(text, cursor) {
             prefix,
         };
     }
-
-    // atributo
-    if (state.inTag && !state.inString && state.tagName) {
-        const m = before.match(/([a-zA-Z_:][a-zA-Z0-9:_\-]*)$/);
-        // já existe "=" depois do nome → não é atributo
-        if (m && before.slice(before.lastIndexOf(m[1]) + m[1].length).includes('=')) return null;
-        return {
-            type: 'attribute',
-            tagName: state.tagName,
-            namespace: state.namespace,
-            prefix: m ? m[1] : '',
-        };
-    }
-
-    // tag
-    const tagMatch = before.match(/<([a-zA-Z0-9:_\-]*)$/);
-    if (tagMatch) {
-        return {
-            type: 'tag',
-            prefix: tagMatch[1],
-        };
-    }
-
     return null;
 }
 
 function xmlTagsProvider(ctx, schema) {
     if (ctx.type !== 'tag') return null;
     if (!schema.tags) return null;
-
     const p = ctx.prefix.toLowerCase();
     const items = schema.tags.filter((t) => t.toLowerCase().startsWith(p));
-
     return items.length ? { items, typesms: 'tags' } : null;
 }
 
 function xmlAttrsProvider(ctx, schema) {
     if (ctx.type !== 'attribute') return null;
-    if (!schema.tagAttrs && !schema.baseAttrs) return null;
-
-    const tagAttrs = schema.tagAttrs?.[ctx.tagName] || [];
-    let baseAttrs = [];
-
-    if (ctx.namespace) baseAttrs = schema.baseAttrs?.[ctx.namespace] || [];
-    else if (schema.baseAttrs) baseAttrs = Object.values(schema.baseAttrs).flat();
-
     const p = ctx.prefix.toLowerCase();
-    const items = [...baseAttrs, ...tagAttrs].filter((a) => a.toLowerCase().startsWith(p));
-
+    let items = [];
+    if (!p && schema.allowNamespaces) items.push(...schema.allowNamespaces.map((ns) => ns + ':'));
+    if (p.includes(':')) {
+        const [ns, partial] = p.split(':');
+        const lowPartial = partial.toLowerCase();
+        let sourceAttrs = [];
+        if (ns === 'android') {
+            if (schema.baseAttrs?.android) sourceAttrs.push(...schema.baseAttrs.android);
+            if (schema.tagAttrs?.[ctx.tagName]) {
+                const tagData = schema.tagAttrs[ctx.tagName];
+                if (Array.isArray(tagData)) sourceAttrs.push(...tagData);
+            }
+        } else if (ns === 'tools') sourceAttrs.push(...(window.xmlSchemas?.namespaces?.tools?.attrs || []));
+        else if (ns === 'xmlns') sourceAttrs.push(...(window.xmlSchemas?.namespaces?.xmlns?.attrs || []));
+        items.push(...sourceAttrs.filter((a) => a.toLowerCase().startsWith(lowPartial)));
+    } else {
+        const tagAttrs = schema.tagAttrs?.[ctx.tagName];
+        if (Array.isArray(tagAttrs)) items.push(...tagAttrs.filter((a) => a.toLowerCase().startsWith(p)));
+        else if (tagAttrs && typeof tagAttrs === 'object')
+            items.push(...Object.keys(tagAttrs).filter((k) => k.toLowerCase().startsWith(p)));
+        if (schema.allowNamespaces) {
+            const nsItems = schema.allowNamespaces.map((ns) => ns + ':').filter((ns) => ns.startsWith(p));
+            items.push(...nsItems);
+        }
+    }
     return items.length ? { items, typesms: 'attrs' } : null;
+}
+function xmlStyleItemValueProvider(ctx) {
+    if (ctx.type !== 'item-value') return null;
+    const p = ctx.prefix.toLowerCase();
+    let items = [];
+    const type = window.attrValueType[ctx.attrName];
+    if (!type) return null;
+    const parts = type.split('.');
+    let values = window.xml_values;
+    for (const part of parts) values = values?.[part];
+    if (!values) return null;
+    if (Array.isArray(values)) items.push(...values.filter((v) => v.toLowerCase().startsWith(p)));
+    return items.length ? { items, typesms: 'value style' } : null;
+}
+
+function xmlXmlnsValueProvider(ctx, schema) {
+    if (ctx.type !== 'attr-value') return null;
+    if (!ctx.attrName.startsWith('xmlns:')) return null;
+    const typed = ctx.attrName.split(':')[1] || '';
+    if (!window.xmlSchemas.namespaces.xmlns?.attrs) return null;
+    const match = window.xmlSchemas.namespaces.xmlns.attrs.find((ns) => ns.startsWith(typed));
+    if (!match) return null;
+    const idx = window.xmlSchemas.namespaces.xmlns.attrs.indexOf(match);
+    const value = window.xmlSchemas.namespaces.xmlns.values?.[idx];
+    if (!value) return null;
+    return {
+        items: [value],
+        typesms: 'xmlns-value',
+    };
 }
 
 function xmlAttrValueProvider(ctx, schema) {
     if (ctx.type !== 'attr-value') return null;
-
     const attr = ctx.attrName.replace(/^.*:/, '');
     const type = window.attrValueType[attr];
+    const p = ctx.prefix.toLowerCase();
+    const items = [];
     if (!type) return null;
-
     const parts = type.split('.');
     let values = window.xml_values;
-
-    for (const p of parts) values = values?.[p];
+    for (const part of parts) values = values?.[part];
     if (!values) return null;
-
-    if (Array.isArray(values)) {
-        return { items: values, typesms: type };
-    }
-
-    if (typeof values === 'string') {
-        return { items: [values], typesms: 'ref' };
-    }
-
-    return null;
+    // if (Array.isArray(values)) return { items: values, typesms: type };
+    // if (typeof values === 'string') return { items: [values], typesms: 'ref' };
+    // return null;
+    if (Array.isArray(values)) items.push(...values.filter((v) => v.toLowerCase().startsWith(p)));
+    if (typeof values === 'string') items.push(values);
+    return items.length ? { items, typesms: type } : null;
 }
 
-const xmlCandidates = [xmlAttrValueProvider, xmlTagsProvider, xmlAttrsProvider];
+const xmlCandidates = [
+    xmlStyleItemValueProvider,
+    xmlAttrValueProvider,
+    xmlXmlnsValueProvider,
+    xmlAttrsProvider,
+    xmlTagsProvider,
+];
 
 function unirXML(ctx, schema) {
     const items = [];
     const types = [];
-
     for (const fn of xmlCandidates) {
-        const r = fn(ctx, schema); // 👈 schema entra aqui
-        if (!r) continue;
-
-        if (r.items) items.push(...r.items);
+        const r = fn(ctx, schema);
+        if (!r || !r.items?.length) continue;
+        items.push(...r.items);
         if (r.typesms) types.push(r.typesms);
-
         if (items.length >= maxs) break;
     }
-
-    return items.length ? { items, typesms: types.join(' | ') } : null;
+    if (!items.length) return null;
+    // if (ctx.prefix && items.length === 1 && items[0].toLowerCase() === ctx.prefix.toLowerCase()) return null;
+    return {
+        items: [...new Set(items)],
+        typesms: [...new Set(types)].join(' | '),
+    };
 }
 
 function getSchemaByFile(fileName) {
