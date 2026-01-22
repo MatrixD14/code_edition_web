@@ -106,21 +106,30 @@ function getXMLContext(text, cursor) {
             return {
                 type: 'item-value',
                 attrName: itemMatch[1].replace(/^android:/, ''),
-                prefix: itemMatch[2] ?? '',
-                force: before.endsWith('>'),
+                prefix: itemMatch[2] || '',
             };
         }
+    }
+
+    // style <item name="...">
+    if (state.inTag && state.inString && state.tagName === 'item' && state.attrName === 'name') {
+        const lastQuote = Math.max(before.lastIndexOf('"'), before.lastIndexOf("'"));
+        const prefix = lastQuote >= 0 ? before.slice(lastQuote + 1) : '';
+
+        return {
+            type: 'item-name',
+            prefix,
+        };
     }
 
     // atributo
     if (state.inTag && !state.inString && state.tagName) {
         const m = before.match(/([a-zA-Z_:][a-zA-Z0-9:_\-]*)$/);
-        const prefix = m ? m[1] : '';
         return {
             type: 'attribute',
             tagName: state.tagName,
             namespace: state.namespace,
-            prefix,
+            prefix: m ? m[1] : '',
         };
     }
 
@@ -152,7 +161,7 @@ function xmlAttrsProvider(ctx, schema) {
     const p = ctx.prefix.toLowerCase();
     let items = [];
     if (!p && schema.allowNamespaces) items.push(...schema.allowNamespaces.map((ns) => ns + ':'));
-    if (p.includes(':')) {
+    else if (p.includes(':')) {
         const [ns, partial] = p.split(':');
         const lowPartial = partial.toLowerCase();
         let sourceAttrs = [];
@@ -164,30 +173,40 @@ function xmlAttrsProvider(ctx, schema) {
             }
         } else if (ns === 'tools') sourceAttrs.push(...(window.xmlSchemas?.namespaces?.tools?.attrs || []));
         else if (ns === 'xmlns') sourceAttrs.push(...(window.xmlSchemas?.namespaces?.xmlns?.attrs || []));
-        items.push(...sourceAttrs.filter((a) => a.toLowerCase().startsWith(lowPartial)));
+        for (const a of sourceAttrs || []) if (a.toLowerCase().startsWith(lowPartial)) items.push(a);
     } else {
+        if (schema.allowNamespaces) for (const ns of schema.allowNamespaces) if (ns.startsWith(p)) items.push(ns + ':');
         const tagAttrs = schema.tagAttrs?.[ctx.tagName];
-        if (Array.isArray(tagAttrs)) items.push(...tagAttrs.filter((a) => a.toLowerCase().startsWith(p)));
-        else if (tagAttrs && typeof tagAttrs === 'object')
-            items.push(...Object.keys(tagAttrs).filter((k) => k.toLowerCase().startsWith(p)));
-        if (schema.allowNamespaces) {
-            const nsItems = schema.allowNamespaces.map((ns) => ns + ':').filter((ns) => ns.startsWith(p));
-            items.push(...nsItems);
-        }
+        if (Array.isArray(tagAttrs)) for (const a of tagAttrs) if (a.toLowerCase().startsWith(p)) items.push(a);
     }
-    return items.length ? { items, typesms: 'attrs' } : null;
+    return items.length ? { items: [...new Set(items)], typesms: 'attrs' } : null;
 }
+
+function xmlStyleItemNameProvider(ctx, schema) {
+    if (ctx.type !== 'item-name') return null;
+    const p = ctx.prefix.toLowerCase();
+    const attrs = Object.keys(window.attrValueType || {});
+    let items = [];
+    if (p.includes(':')) {
+        const [ns, partial = ''] = p.split(':');
+        if (ns === 'android') for (const a of attrs) if (a.toLowerCase().startsWith(partial)) items.push(a);
+    } else items.push('android:');
+    return items.length ? { items: [...new Set(items)], typesms: 'attrs' } : null;
+}
+
 function xmlStyleItemValueProvider(ctx) {
     if (ctx.type !== 'item-value') return null;
-    const p = ctx.prefix.toLowerCase();
-    let items = [];
     const type = window.attrValueType[ctx.attrName];
     if (!type) return null;
-    const parts = type.split('.');
     let values = window.xml_values;
+    const parts = type.split('.');
     for (const part of parts) values = values?.[part];
     if (!values) return null;
-    if (Array.isArray(values)) items.push(...values.filter((v) => v.toLowerCase().startsWith(p)));
+    let items = Array.isArray(values) ? [...values] : [values];
+    if (ctx.prefix) {
+        const p = ctx.prefix.toLowerCase();
+        items = items.filter((v) => v.toLowerCase().startsWith(p));
+    }
     return items.length ? { items, typesms: 'value style' } : null;
 }
 
@@ -211,22 +230,21 @@ function xmlAttrValueProvider(ctx, schema) {
     if (ctx.type !== 'attr-value') return null;
     const attr = ctx.attrName.replace(/^.*:/, '');
     const type = window.attrValueType[attr];
-    const p = ctx.prefix.toLowerCase();
-    const items = [];
     if (!type) return null;
     const parts = type.split('.');
     let values = window.xml_values;
     for (const part of parts) values = values?.[part];
     if (!values) return null;
-    // if (Array.isArray(values)) return { items: values, typesms: type };
-    // if (typeof values === 'string') return { items: [values], typesms: 'ref' };
-    // return null;
-    if (Array.isArray(values)) items.push(...values.filter((v) => v.toLowerCase().startsWith(p)));
-    if (typeof values === 'string') items.push(values);
+    let items = Array.isArray(values) ? [...values] : [values];
+    if (ctx.prefix) {
+        const p = ctx.prefix.toLowerCase();
+        items = items.filter((v) => v.toLowerCase().startsWith(p));
+    }
     return items.length ? { items, typesms: type } : null;
 }
 
 const xmlCandidates = [
+    xmlStyleItemNameProvider,
     xmlStyleItemValueProvider,
     xmlAttrValueProvider,
     xmlXmlnsValueProvider,
@@ -244,6 +262,7 @@ function unirXML(ctx, schema) {
         if (r.typesms) types.push(r.typesms);
         if (items.length >= maxs) break;
     }
+
     if (!items.length) return null;
     // if (ctx.prefix && items.length === 1 && items[0].toLowerCase() === ctx.prefix.toLowerCase()) return null;
     return {

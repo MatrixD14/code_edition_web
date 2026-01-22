@@ -19,7 +19,7 @@ function updateHelperPanel() {
     const schema = getSchemaByFile(fileName);
     const isXML = !!schema;
     const lastChar = text[cursor - 1];
-    if (!/[a-zA-Z0-9_:\-@\.<=\/"' ]/.test(lastChar)) {
+    if (!/[a-zA-Z0-9_:\-@\.<=\/"' >]/.test(lastChar)) {
         cleanvar();
         return;
     }
