@@ -6,8 +6,11 @@ let stringsCache = {},
     stylesCache = {},
     drawablesCache = {};
 
-let currentProject = '';
+let currentProject = '',
+    lastXML = '';
+channel.postMessage({ type: 'ready' });
 channel.onmessage = async (event) => {
+    if (!event.data || !event.data.xml) return;
     let { xml, projectRoot } = event.data;
     if (projectRoot && projectRoot !== currentProject) {
         currentProject = projectRoot;
@@ -17,7 +20,7 @@ channel.onmessage = async (event) => {
         drawablesCache = {};
         await carregarRecursos(projectRoot);
     }
-    renderizar(xml);
+    requestAnimationFrame(() => renderizar(xml));
 };
 
 function extrairErroXML(errorText) {
@@ -41,10 +44,11 @@ function extrairErroXML(errorText) {
 }
 
 function renderizar(xmlString) {
-    if (!xmlString) return;
+    if (xmlString === lastXML) return;
+    lastXML = xmlString;
 
     let parser = new DOMParser();
-    let xmlDoc = parser.parseFromString(xmlString, 'text/xml');
+    let xmlDoc = parser.parseFromString(lastXML, 'text/xml');
 
     let errorNode = xmlDoc.querySelector('parsererror');
     if (errorNode) {

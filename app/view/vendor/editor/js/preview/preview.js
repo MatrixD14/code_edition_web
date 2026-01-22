@@ -1,18 +1,31 @@
+let timer,
+    lastXML = '';
+let previewReady = false;
 const previewChannel = new BroadcastChannel('android_preview');
-let timer;
+
+previewChannel.onmessage = (e) => {
+    if (e.data?.type === 'ready') {
+        previewReady = true;
+        console.log('Preview conectado');
+    }
+};
 ui.input.addEventListener('input', () => {
     clearTimeout(timer);
     timer = setTimeout(() => {
-        const currentFile = ui.input.dataset.currentFile;
-
-        if (currentFile && currentFile.endsWith('.xml')) {
-            console.log('Enviando para preview:', state.currentProjectRoot);
+        if (!previewReady) return;
+        const xml = ui.input.value;
+        if (xml === lastXML) return;
+        lastXML = xml;
+        const send = () => {
             previewChannel.postMessage({
-                xml: ui.input.value,
-                path: currentFile,
+                xml,
+                path: ui.input.dataset.currentFile,
                 projectRoot: state.currentProjectRoot,
             });
-        }
+        };
+
+        if ('requestIdleCallback' in window) requestIdleCallback(send);
+        else setTimeout(send, 0);
     }, 300);
 });
 
