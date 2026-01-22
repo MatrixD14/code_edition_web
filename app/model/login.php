@@ -1,24 +1,17 @@
 <?php
-class login
+class User
 {
-    public $nome, $senha;
-    public function __construct($nome, $senha)
+    public static function checkPassword(string $user, string $pass): bool
     {
-        $this->nome = $nome;
-        $this->senha = $senha;
-    }
-    public function protect()
-    {
-        if (!isset($_SESSION['nome'])) die("não nao tem permissão para acessar essa página <a href=\"../../login.php\">sair</a>");
+        $accounts = Env::get('accounts');
+
+        if (!is_array($accounts))
+            return false;
+
+        $user = trim($user);
+        $pass = trim($pass);
+
+        if (!isset($accounts[$user])) return false;
+        return trim($accounts[$user]) === $pass;
     }
 }
-// class User
-// {
-//     public static function checkPassword(string $user, string $pass): bool
-//     {
-//         $accounts = Env::get('accounts');
-
-//         if (!isset($accounts[$user])) return false;
-//         return $accounts[$user] === $pass;
-//     }
-// }

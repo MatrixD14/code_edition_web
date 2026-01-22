@@ -35,7 +35,7 @@ term.inputTerm.addEventListener('keydown', async (e) => {
         const textBeforePartial = fullText.substring(0, fullText.lastIndexOf(partialName));
 
         try {
-            const response = await fetch('../../../model/terminal/autocomplete.php', {
+            const response = await fetch(`${window.BASE_URL}model/terminal/autocomplete.php`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -74,7 +74,7 @@ term.inputTerm.addEventListener('keydown', async (e) => {
         term.inputTerm.value = '';
 
         try {
-            const response = await fetch('../../../model/terminal/terminal.php', {
+            const response = await fetch(`${window.BASE_URL}model/terminal/terminal.php`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

@@ -33,26 +33,5 @@ if (!$sdkPath) {
     throw new RuntimeException("Digite o caminho do Android SDK no ./.editorConf : </br></br>[android]</br>sdk_path=?");
 }
 //login
-require_once 'app/model/login.php';
-// define('ROOT_PATH', realpath(__DIR__));
-
-// spl_autoload_register(function ($class) {
-//     $paths = [
-//         ROOT_PATH . '/controller/',
-//         ROOT_PATH . '/model/',
-//     ];
-
-//     foreach ($paths as $path) {
-//         $file = $path . $class . '.php';
-//         if (file_exists($file)) {
-//             require_once $file;
-//             return;
-//         }
-//     }
-// });
-
-// require_once ROOT_PATH . '/app/model/editorConf.php';
-// Env::load(ROOT_PATH . '/.editorConf');
-
-// $htdoc = realpath(ROOT_PATH . Env::get('path_htdoc', '/HTDOC'));
-// define('HTDOC', $htdoc ?: '');
+require_once __DIR__ . '/app/controller/login/auth_login.php';
+require_once __DIR__ . '/app/model/login.php';

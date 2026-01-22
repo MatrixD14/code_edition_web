@@ -10,7 +10,7 @@ inputUpload.addEventListener('change', async (e) => {
         formData.append('path', files[i].webkitRelativePath);
 
         try {
-            await fetch('../../../model/editor/upload_project.php', {
+            await fetch(`${window.BASE_URL}model/editor/upload_project.php`, {
                 method: 'POST',
                 body: formData,
             });

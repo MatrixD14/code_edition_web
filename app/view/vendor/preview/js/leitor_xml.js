@@ -27,8 +27,8 @@ function extrairErroXML(errorText) {
     let tipo = 'Erro de sintaxe no XML';
     let linha = null;
 
-    let tipoMatch = errorText.match(/Erro de parse XML:[^\n]+/);
-    if (tipoMatch) tipo = tipoMatch[0].replace('Erro de parse XML:', '').trim();
+    let tipoMatch = errorText.match(/Erro no codigo do XML:[^\n]+/);
+    if (tipoMatch) tipo = tipoMatch[0].replace('Erro no codigo do XML:', '').trim();
 
     let linhaMatch = errorText.match(/Linha número (\d+)/);
     if (linhaMatch) linha = linhaMatch[1];

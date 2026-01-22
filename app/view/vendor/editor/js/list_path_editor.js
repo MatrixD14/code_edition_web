@@ -13,7 +13,7 @@ ui.btnOpenProject.addEventListener('click', async (e) => {
     ui.projectSelector.classList.toggle('hidden');
     config.painelConfig.classList.add('hidden');
 
-    const r = await fetch('../../../model/editor/list_path.php');
+    const r = await fetch(`${window.BASE_URL}model/editor/list_path.php`);
     const items = await r.json();
     ui.projectsList.innerHTML = items
         .filter((item) => item.type === 'dir')
@@ -64,7 +64,7 @@ ui.projectsList.addEventListener('click', (e) => {
 });
 
 async function initProjectTree(path) {
-    const r = await fetch(`../../../model/editor/list_path.php?open_file=${encodeURIComponent(path)}`);
+    const r = await fetch(`${window.BASE_URL}model/editor/list_path.php?open_file=${encodeURIComponent(path)}`);
     const items = await r.json();
 
     ui.pathDisplay.innerHTML = '';
@@ -104,7 +104,7 @@ function toggleDir(li) {
 }
 
 async function loadSubDir(dirPath, container) {
-    const r = await fetch(`../../../model/editor/list_path.php?open_file=${encodeURIComponent(dirPath)}`);
+    const r = await fetch(`${window.BASE_URL}model/editor/list_path.php?open_file=${encodeURIComponent(dirPath)}`);
     const items = await r.json();
     const ul = document.createElement('ul');
     ul.style.paddingLeft = '15px';
@@ -118,7 +118,7 @@ async function openFile(path) {
 
     if (highlight) highlight.textContent = 'Carregando...';
     try {
-        const response = await fetch(`../../../model/editor/read_file.php?file=${encodeURIComponent(path)}`);
+        const response = await fetch(`${window.BASE_URL}model/editor/read_file.php?file=${encodeURIComponent(path)}`);
         state.currentSelectedFolder = path.substring(0, path.lastIndexOf('/'));
         const text = await response.text();
 
@@ -145,7 +145,7 @@ ui.btnSalvar.addEventListener('click', async () => {
     }
 
     try {
-        const response = await fetch('../../../model/editor/save_file.php', {
+        const response = await fetch(`${window.BASE_URL}model/editor/save_file.php`, {
             method: 'POST',
             body: JSON.stringify({ file: filePath, content: ui.input.value }),
         });
@@ -231,7 +231,7 @@ async function createResource(type) {
         if (!xmlType) return;
     }
     try {
-        const response = await fetch('../../../model/editor/create_resource.php', {
+        const response = await fetch(`${window.BASE_URL}model/editor/create_resource.php`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -294,7 +294,7 @@ $('#btn-delete').addEventListener('click', async () => {
     }
 
     try {
-        const response = await fetch('../../../model/editor/delete_resource.php', {
+        const response = await fetch(`${window.BASE_URL}model/editor/delete_resource.php`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ path: currentSelectedPath }),
@@ -335,7 +335,7 @@ async function renameResource() {
     if (!newName || newName === oldName) return;
 
     try {
-        const response = await fetch('../../../model/editor/rename_resource.php', {
+        const response = await fetch(`${window.BASE_URL}model/editor/rename_resource.php`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

@@ -30,5 +30,5 @@ ui.input.addEventListener('input', () => {
 });
 
 $('#btn-open-preview').onclick = () => {
-    window.open('../preview/preview.php', '_blank');
+    window.open('/app/view/vendor/preview/preview.php', '_blank');
 };

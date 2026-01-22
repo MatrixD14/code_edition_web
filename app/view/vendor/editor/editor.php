@@ -1,9 +1,8 @@
 <?php
+defined('APP') or die('Acesso negado');
 if (session_status() === PHP_SESSION_NONE) session_start();
-require_once '../../../../bootstrap.php';
-$login = new login("", "");
-$login->protect();
-//  defined('APP') or die('Acesso negado');
+AuthLogin::check();
+define('base_editor_js', '/app/view/vendor/editor');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -12,19 +11,19 @@ $login->protect();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="data:," type="image/x-icon">
-    <link rel="stylesheet" href="../../css/global.css" />
-    <link rel="stylesheet" href="./css/editor.css">
-    <link rel="stylesheet" href="./css/color_text.css">
-    <link rel="stylesheet" href="./css/terminal_style.css">
-    <link rel="stylesheet" href="./css/confing.css">
-    <link rel="stylesheet" href="./css/autocomplete.css">
-    <link rel="stylesheet" href="./css/menu_xml.css">
+    <link rel="stylesheet" href="/app/view/css/global.css" />
+    <link rel="stylesheet" href="<?= base_editor_js ?>/css/editor.css">
+    <link rel="stylesheet" href="<?= base_editor_js ?>/css/color_text.css">
+    <link rel="stylesheet" href="<?= base_editor_js ?>/css/terminal_style.css">
+    <link rel="stylesheet" href="<?= base_editor_js ?>/css/confing.css">
+    <link rel="stylesheet" href="<?= base_editor_js ?>/css/autocomplete.css">
+    <link rel="stylesheet" href="<?= base_editor_js ?>/css/menu_xml.css">
     <title>editor</title>
 </head>
 
 <body>
     <nav class="top">
-        <a href="../../../controller/login/logout.php"><?= $_SESSION["nome"] ?></a>
+        <a href="/logout"><?= $_SESSION["nome"] ?></a>
         <a id="btn_fullscreen" title="Tela Cheia (shift+F)">⛶</a>
     </nav>
     <div class="box-editor">
@@ -110,6 +109,7 @@ $login->protect();
     </div>
 
     <script>
+        window.BASE_URL = '/app/';
         window.EDITOR_CONFIG = {
             autocomplete: <?= json_encode($ativaAutocomple) ?>,
             fontsizevalue: <?= json_encode($fontsize) ?>
@@ -120,22 +120,22 @@ $login->protect();
             unset($_SESSION["list_java"]);
         } ?>
     </script>
-    <script src="./js/variaveis.js"></script>
-    <script src="./js/autocomplete/list_tag_xml.js"></script>
-    <script src="./js/autocomplete/list_base_java.js"></script>
-    <script src="./js/autocomplete/list_lib_java.js"></script>
-    <script src="./js/conf_system.js"></script>
-    <script src="./js/highlighter.js"></script>
-    <script src="./js/list_path_editor.js"></script>
-    <script src="./js/upload_path_editor.js"></script>
-    <script src="./js/autocomplete/list_java_lib.js"></script>
-    <script src="./js/terminal.js"></script>
-    <script src="./js/fullscreen.js"></script>
-    <script src="./js/preview/preview.js"></script>
-    <script src="../preview/js/variaveis.js"></script>
-    <script src="./js/autocomplete/function_java.js"></script>
-    <script src="./js/autocomplete/function_xml.js"></script>
-    <script src="./js/autocomplete/autocomplet.js"></script>
+    <script src="<?= base_editor_js ?>/js/variaveis.js"></script>
+    <script src="<?= base_editor_js ?>/js/autocomplete/list_tag_xml.js"></script>
+    <script src="<?= base_editor_js ?>/js/autocomplete/list_base_java.js"></script>
+    <script src="<?= base_editor_js ?>/js/autocomplete/list_lib_java.js"></script>
+    <script src="<?= base_editor_js ?>/js/conf_system.js"></script>
+    <script src="<?= base_editor_js ?>/js/highlighter.js"></script>
+    <script src="<?= base_editor_js ?>/js/list_path_editor.js"></script>
+    <script src="<?= base_editor_js ?>/js/upload_path_editor.js"></script>
+    <script src="<?= base_editor_js ?>/js/autocomplete/list_java_lib.js"></script>
+    <script src="<?= base_editor_js ?>/js/terminal.js"></script>
+    <script src="<?= base_editor_js ?>/js/fullscreen.js"></script>
+    <script src="<?= base_editor_js ?>/js/preview/preview.js"></script>
+    <script src="/app/view/vendor/preview/js/variaveis.js"></script>
+    <script src="<?= base_editor_js ?>/js/autocomplete/function_java.js"></script>
+    <script src="<?= base_editor_js ?>/js/autocomplete/function_xml.js"></script>
+    <script src="<?= base_editor_js ?>/js/autocomplete/autocomplet.js"></script>
 </body>
 
 </html>
