@@ -7,28 +7,55 @@ previewChannel.onmessage = (e) => {
     if (e.data?.type === 'ready') {
         previewReady = true;
         console.log('Preview conectado');
+        previewChannel.postMessage({
+            type: 'update_layout',
+            xml: ui.input.value,
+            filePath: ui.input.dataset.currentFile,
+            projectRoot: state.currentProjectRoot,
+        });
     }
 };
-ui.input.addEventListener('input', () => {
+// ui.input.addEventListener('input', () => {
+//     const xml = ui.input.value;
+//     const filePath = ui.input.dataset.currentFile;
+//     clearTimeout(timer);
+//     timer = setTimeout(() => {
+//         if (!previewReady) return;
+//         if (xml === lastXML) return;
+//         lastXML = xml;
+//         const send = () => {
+//             previewChannel.postMessage({
+//                 type: 'update_layout',
+//                 xml,
+//                 filePath,
+//                 projectRoot: state.currentProjectRoot,
+//             });
+//         };
+
+//         if ('requestIdleCallback' in window) requestIdleCallback(send);
+//         else requestAnimationFrame(send);
+//     }, 300);
+// });
+
+let previewWindow = null;
+const btnReload = $('#btn-open-preview');
+btnReload.onclick = () => {
+    // const xml = ui.input.value;
+    // const filePath = ui.input.dataset.currentFile;
+    if (!previewWindow || previewWindow.closed) {
+        previewWindow = window.open('/app/view/vendor/preview/preview.php', '_blank');
+    } else previewWindow.focus();
     clearTimeout(timer);
     timer = setTimeout(() => {
-        if (!previewReady) return;
-        const xml = ui.input.value;
-        if (xml === lastXML) return;
-        lastXML = xml;
-        const send = () => {
-            previewChannel.postMessage({
-                xml,
-                path: ui.input.dataset.currentFile,
-                projectRoot: state.currentProjectRoot,
-            });
-        };
-
-        if ('requestIdleCallback' in window) requestIdleCallback(send);
-        else setTimeout(send, 0);
+        btnReload.textContent = '⌛';
+        previewChannel.postMessage({
+            type: 'force_reload',
+            // xml,
+            // filePath,
+            // projectRoot: state.currentProjectRoot,
+        });
     }, 300);
-});
-
-$('#btn-open-preview').onclick = () => {
-    window.open('/app/view/vendor/preview/preview.php', '_blank');
+    setTimeout(() => {
+        btnReload.textContent = '⟳';
+    }, 1000);
 };

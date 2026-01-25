@@ -26,3 +26,6 @@ body {
     overflow-x: hidden;
     position: relative;
 }
+.hidden {
+    display: none;
+}

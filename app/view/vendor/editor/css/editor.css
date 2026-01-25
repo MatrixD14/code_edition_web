@@ -248,6 +248,9 @@ body {
     /* contain: strict; */
     contain: layout paint;
 }
+#btn-open-preview {
+    display: none;
+}
 
 .editor,
 #highlight-layer,

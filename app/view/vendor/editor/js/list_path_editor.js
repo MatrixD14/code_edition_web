@@ -111,12 +111,20 @@ async function loadSubDir(dirPath, container) {
     items.forEach((item) => ul.appendChild(createListItem(item)));
     container.appendChild(ul);
 }
+function setPreviewVisible(visible) {
+    const linkPreview = $('#btn-open-preview');
+    if (!linkPreview) return;
+    linkPreview.style.display = visible ? 'block' : 'none';
+}
 
 async function openFile(path) {
     unlockEditor();
     let highlight = $('#highlight-content');
-
     if (highlight) highlight.textContent = 'Carregando...';
+
+    let isLayout = path?.endsWith('.xml') && path.includes('/res/layout/');
+    setPreviewVisible(isLayout);
+
     try {
         const response = await fetch(`${window.BASE_URL}model/editor/read_file.php?file=${encodeURIComponent(path)}`);
         state.currentSelectedFolder = path.substring(0, path.lastIndexOf('/'));

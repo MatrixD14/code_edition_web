@@ -7,49 +7,76 @@ let stringsCache = {},
     drawablesCache = {};
 
 let currentProject = '',
-    lastXML = '';
+    lastXMLRaw = '',
+    lastLayoutFile = '',
+    lastDeps = null,
+    lastTreeHash = '';
+let activeXML = null;
+let activeFile = null;
 channel.postMessage({ type: 'ready' });
 channel.onmessage = async (event) => {
-    if (!event.data || !event.data.xml) return;
-    let { xml, projectRoot } = event.data;
-    if (projectRoot && projectRoot !== currentProject) {
-        currentProject = projectRoot;
-        stringsCache = {};
-        colorsCache = {};
-        stylesCache = {};
-        drawablesCache = {};
-        await carregarRecursos(projectRoot);
+    const data = event.data;
+    if (!data) return;
+    if (data.type === 'force_reload') {
+        console.log('🔄 Recarregamento total solicitado');
+        lastXMLRaw = null;
+        resetAll();
+        if (currentProject) await carregarRecursos(currentProject);
+        if (activeXML && activeFile) await renderizar(activeXML, activeFile);
+        return;
     }
-    requestAnimationFrame(() => renderizar(xml));
+    if (data.type === 'update_layout') {
+        const { xml, projectRoot, filePath } = data;
+
+        activeXML = xml;
+        activeFile = filePath;
+
+        if (projectRoot && projectRoot !== currentProject) {
+            currentProject = projectRoot;
+            resetAll();
+            await carregarRecursos(projectRoot);
+        }
+        requestAnimationFrame(() => renderizar(xml, filePath));
+    }
 };
+
+function resetAll() {
+    stringsCache = {};
+    colorsCache = {};
+    stylesCache = {};
+    drawablesCache = {};
+    lastTreeHash = '';
+    screen.textContent = 'Carregando…';
+}
 
 function extrairErroXML(errorText) {
     let tipo = 'Erro de sintaxe no XML';
     let linha = null;
-
     let tipoMatch = errorText.match(/Erro no codigo do XML:[^\n]+/);
     if (tipoMatch) tipo = tipoMatch[0].replace('Erro no codigo do XML:', '').trim();
 
     let linhaMatch = errorText.match(/Linha número (\d+)/);
     if (linhaMatch) linha = linhaMatch[1];
-    if (errorText.includes('tag sem correspondência')) {
-        tipo = 'Tag não fechada ou fechamento incorreto (>)';
-    } else if (errorText.includes('formato incorreto')) {
-        tipo = 'Formato inválido no XML';
-    } else if (errorText.includes('Esperado: .')) {
-        tipo = 'Esperado fechamento de tag (>)';
-    }
-
+    if (errorText.includes('tag sem correspondência')) tipo = 'Tag não fechada ou fechamento incorreto (>)';
+    else if (errorText.includes('formato incorreto')) tipo = 'Formato inválido no XML';
+    else if (errorText.includes('Esperado: .')) tipo = 'Esperado fechamento de tag (>)';
     return { tipo, linha };
 }
-
-function renderizar(xmlString) {
-    if (xmlString === lastXML) return;
-    lastXML = xmlString;
-
+function getNodeKey(node) {
+    return (
+        node.tagName +
+        [...node.attributes].map((a) => a.name + '=' + a.value).join('|') +
+        [...node.children].map(getNodeKey).join('')
+    );
+}
+async function renderizar(xmlString, filePath) {
+    console.log('Renderizando preview para', filePath);
+    if (!filePath || !filePath.includes('/res/layout/')) return;
+    if (lastXMLRaw !== null && xmlString === lastXMLRaw) return;
+    lastXMLRaw = xmlString;
+    lastLayoutFile = filePath;
     let parser = new DOMParser();
-    let xmlDoc = parser.parseFromString(lastXML, 'text/xml');
-
+    let xmlDoc = parser.parseFromString(lastXMLRaw, 'text/xml');
     let errorNode = xmlDoc.querySelector('parsererror');
     if (errorNode) {
         screen.style.display = 'none';
@@ -58,18 +85,28 @@ function renderizar(xmlString) {
       ${linha ? `Linha ${linha}` : ''}</div>`;
         return;
     }
-    screen.style.display = 'flex';
     error.textContent = '';
-    screen.textContent = '';
-    screen.appendChild(converter(xmlDoc.documentElement));
+    const newHash = getNodeKey(xmlDoc.documentElement);
+    if (newHash === lastTreeHash) return;
+    lastTreeHash = newHash;
+    const fragment = document.createDocumentFragment();
+    fragment.appendChild(converter(xmlDoc.documentElement));
+    screen.replaceChildren(fragment);
+    screen.classList.add('hidden');
+    requestAnimationFrame(() => {
+        screen.classList.remove('hidden');
+    });
 }
+
 async function carregarRecursos(projectRoot) {
     try {
         let fetchXML = async (path) => {
-            let r = await fetch(`../../../model/editor/read_file.php?file=${encodeURIComponent(projectRoot + path)}`);
+            let r = await fetch(
+                `../../../model/editor/read_file.php?file=${encodeURIComponent(projectRoot + path)}&v=${Date.now()}`,
+            );
+            if (!r.ok) throw new Error('Falha ao ler');
             return new DOMParser().parseFromString(await r.text(), 'text/xml');
         };
-
         try {
             let docColors = await fetchXML('/res/values/colors.xml');
             for (let c of docColors.getElementsByTagName('color')) {
@@ -127,11 +164,8 @@ function obterValor(attr) {
 
 function aplicarAtributo(el, attr, value) {
     if (!value) return;
-
     if (attr.startsWith('android:')) attr = attr.replace('android:', '');
-
     const handler = attributeHandlers[attr];
-
     if (handler) handler(el, value);
     else {
     }
@@ -150,23 +184,12 @@ function aplicarEstilo(el, styleName) {
 
 function converter(node) {
     const tag = node.tagName;
-
     const handler = viewHandlers[tag];
     const el = handler ? handler(node) : document.createElement('div');
-
     el.style.boxSizing = 'border-box';
-
     let styleAttr = node.getAttribute('style');
     if (styleAttr) aplicarEstilo(el, styleAttr);
-
-    Array.from(node.attributes).forEach((attr) => {
-        aplicarAtributo(el, attr.name, attr.value);
-    });
-
-    Array.from(node.children).forEach((child) => {
-        const childEl = converter(child);
-        el.appendChild(childEl);
-    });
-
+    for (let attr of node.attributes) aplicarAtributo(el, attr.name, attr.value);
+    for (let child of node.children) el.appendChild(converter(child));
     return el;
 }
