@@ -16,58 +16,32 @@ let activeFile = null;
 channel.postMessage({ type: 'ready' });
 channel.onmessage = async (event) => {
     const data = event.data;
-    if (!data) return;
-    if (data.type === 'force_reload') {
-        console.log('🔄 Recarregamento total solicitado');
-        lastXMLRaw = null;
-        resetAll();
-        if (currentProject) await carregarRecursos(currentProject);
-        if (activeXML && activeFile) await renderizar(activeXML, activeFile);
-        return;
+    if (!data || data.type !== 'update_layout') return;
+    const { xml, projectRoot, filePath } = data;
+    activeXML = xml;
+    activeFile = filePath;
+    if (projectRoot && projectRoot !== currentProject) {
+        currentProject = projectRoot;
+        stringsCache = {};
+        colorsCache = {};
+        stylesCache = {};
+        drawablesCache = {};
+        lastTreeHash = '';
+        screen.textContent = 'Carregando…';
+        await carregarRecursos(projectRoot);
     }
-    if (data.type === 'update_layout') {
-        const { xml, projectRoot, filePath } = data;
-
-        activeXML = xml;
-        activeFile = filePath;
-
-        if (projectRoot && projectRoot !== currentProject) {
-            currentProject = projectRoot;
-            resetAll();
-            await carregarRecursos(projectRoot);
-        }
-        requestAnimationFrame(() => renderizar(xml, filePath));
-    }
+    lastXMLRaw = null;
+    lastTreeHash = '';
+    requestAnimationFrame(() => renderizar(xml, filePath));
 };
 
-function resetAll() {
-    stringsCache = {};
-    colorsCache = {};
-    stylesCache = {};
-    drawablesCache = {};
-    lastTreeHash = '';
-    screen.textContent = 'Carregando…';
-}
-
-function extrairErroXML(errorText) {
-    let tipo = 'Erro de sintaxe no XML';
-    let linha = null;
-    let tipoMatch = errorText.match(/Erro no codigo do XML:[^\n]+/);
-    if (tipoMatch) tipo = tipoMatch[0].replace('Erro no codigo do XML:', '').trim();
-
-    let linhaMatch = errorText.match(/Linha número (\d+)/);
-    if (linhaMatch) linha = linhaMatch[1];
-    if (errorText.includes('tag sem correspondência')) tipo = 'Tag não fechada ou fechamento incorreto (>)';
-    else if (errorText.includes('formato incorreto')) tipo = 'Formato inválido no XML';
-    else if (errorText.includes('Esperado: .')) tipo = 'Esperado fechamento de tag (>)';
-    return { tipo, linha };
-}
-function getNodeKey(node) {
-    return (
-        node.tagName +
-        [...node.attributes].map((a) => a.name + '=' + a.value).join('|') +
-        [...node.children].map(getNodeKey).join('')
-    );
+function simpleHash(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = (hash << 5) - hash + str.charCodeAt(i);
+        hash |= 0;
+    }
+    return hash;
 }
 async function renderizar(xmlString, filePath) {
     console.log('Renderizando preview para', filePath);
@@ -75,18 +49,19 @@ async function renderizar(xmlString, filePath) {
     if (lastXMLRaw !== null && xmlString === lastXMLRaw) return;
     lastXMLRaw = xmlString;
     lastLayoutFile = filePath;
-    let parser = new DOMParser();
-    let xmlDoc = parser.parseFromString(lastXMLRaw, 'text/xml');
+    error.textContent = '';
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
     let errorNode = xmlDoc.querySelector('parsererror');
     if (errorNode) {
-        screen.style.display = 'none';
+        screen.classList.add('hidden');
         let { tipo, linha } = extrairErroXML(errorNode.textContent);
         error.innerHTML = `<div style="color:red; padding:10px;">${tipo}<br>
       ${linha ? `Linha ${linha}` : ''}</div>`;
         return;
     }
-    error.textContent = '';
-    const newHash = getNodeKey(xmlDoc.documentElement);
+    screen.classList.remove('hidden');
+    const newHash = simpleHash(xmlString);
     if (newHash === lastTreeHash) return;
     lastTreeHash = newHash;
     const fragment = document.createDocumentFragment();

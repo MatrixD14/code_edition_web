@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const output = $('#highlight-content');
     const layer = $('#highlight-layer');
     const lineNumbers = $('#line-numbers');
-    // const highlighterWorker = new Worker('./js/highlighter-worker.js');
     const highlighterWorker = new Worker('/app/view/vendor/editor/js/highlighter-worker.js');
     let timeout,
         lastMsgId = 0;
@@ -79,21 +78,32 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    input.addEventListener('input', () => {
-        clearTimeout(timeout);
-        let delay = input.value.length > 25000 ? 200 : 50;
-        timeout = setTimeout(sendToWorker, delay);
-    });
-
-    function updateLineNumbers(text) {
-        const lines = text.split('\n').length;
-        const numbers = Array.from({ length: lines }, (_, i) => i + 1).join('\n');
-        lineNumbers.textContent = numbers;
+    function syncEditorInicial() {
+        updateLineNumbers(input.value);
+        sendToWorker();
     }
 
     input.addEventListener('input', () => {
-        updateLineNumbers(input.value);
+        clearTimeout(timeout);
+        let delay = input.value.length > 25000 ? 200 : 50;
+        timeout = setTimeout(syncEditorInicial, delay);
     });
+
+    let totalLinhas = 1;
+    function updateLineNumbers(text) {
+        const total = text.split('\n').length;
+        if (total === totalLinhas && lineNumbers.children.length) return;
+        for (let i = totalLinhas; i < total; i++) {
+            const span = document.createElement('span');
+            span.textContent = i;
+            span.dataset.line = i;
+            lineNumbers.appendChild(span);
+        }
+        while (lineNumbers.children.length > total) {
+            lineNumbers.removeChild(lineNumbers.lastChild);
+        }
+        totalLinhas = total;
+    }
 
     const observer = new ResizeObserver(() => {
         const rect = input.getBoundingClientRect();

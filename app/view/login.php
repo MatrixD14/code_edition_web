@@ -10,6 +10,11 @@ if (session_status() === PHP_SESSION_NONE) session_start(); ?>
     <link rel="stylesheet" href="app/view/css/global.css" />
     <link rel="stylesheet" href="app/view/css/component/button.css" />
     <title>login</title>
+    <style>
+        input::-webkit-calendar-picker-indicator {
+            display: none;
+        }
+    </style>
 </head>
 
 <body class="body-center">
@@ -22,7 +27,7 @@ if (session_status() === PHP_SESSION_NONE) session_start(); ?>
                 session_destroy();
                 ?>
             </p>
-            <form action="/login" method="post">
+            <form action="/login" method="post" autocomplete="off">
                 <label for="nome">nome</label><br />
                 <input type="text" name="nome" /><br />
                 <label for="senha">senha</label><br />

@@ -18,6 +18,7 @@ define('base_editor_js', '/app/view/vendor/editor');
     <link rel="stylesheet" href="<?= base_editor_js ?>/css/confing.css">
     <link rel="stylesheet" href="<?= base_editor_js ?>/css/autocomplete.css">
     <link rel="stylesheet" href="<?= base_editor_js ?>/css/menu_xml.css">
+    <link rel="stylesheet" href="<?= base_editor_js ?>/css/erroPainel.css">
     <title>editor</title>
 </head>
 
@@ -64,6 +65,7 @@ define('base_editor_js', '/app/view/vendor/editor');
         <div id="xml-quick" class="hidden">
             <div class="xml-quick-box"></div>
         </div>
+        <div id="error-panel" hidden></div>
         <div class="painel_path">
             <div class="mune_select_file_dir">
                 <p class="nome_diretory"></p>
@@ -136,6 +138,8 @@ define('base_editor_js', '/app/view/vendor/editor');
     <script src="<?= base_editor_js ?>/js/autocomplete/function_java.js"></script>
     <script src="<?= base_editor_js ?>/js/autocomplete/function_xml.js"></script>
     <script src="<?= base_editor_js ?>/js/autocomplete/autocomplet.js"></script>
+    <script src="app/view/vendor/preview/js/verifErro.js"></script>
+    <script src="<?= base_editor_js ?>/js/LogErro.js"></script>
 </body>
 
 </html>

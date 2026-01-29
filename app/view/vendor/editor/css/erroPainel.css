@@ -1,0 +1,26 @@
+#error-panel {
+    position: fixed;
+    z-index: 9999;
+    max-width: 280px;
+    background: #1e1e1e;
+    color: #fff;
+    font-family: monospace;
+    font-size: 12px;
+    border-radius: 6px;
+    padding: 8px 10px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+    border-left: 4px solid #ff5555;
+    pointer-events: none;
+}
+
+#error-panel .line {
+    color: #aaa;
+    font-size: 11px;
+    margin-bottom: 4px;
+}
+
+#line-numbers .line-error {
+    color: #ff5555;
+    font-weight: bold;
+    cursor: pointer;
+}

@@ -262,9 +262,7 @@ function unirXML(ctx, schema) {
         if (r.typesms) types.push(r.typesms);
         if (items.length >= maxs) break;
     }
-
     if (!items.length) return null;
-    // if (ctx.prefix && items.length === 1 && items[0].toLowerCase() === ctx.prefix.toLowerCase()) return null;
     return {
         items: [...new Set(items)],
         typesms: [...new Set(types)].join(' | '),
