@@ -46,11 +46,13 @@ define('base_editor_js', '/app/view/vendor/editor');
                 <li title="Configurações" class="config_settings">⚙️</li>
             </ul>
         </div>
+
         <div id="projects_selector" class="projects-menu hidden">
             <h3>Projetos Recentes</h3>
             <hr>
             <ul id="projects_list"></ul>
         </div>
+
         <div class="painel-config hidden" id="painel-config">
             <h3>Configurações</h3>
             <hr>
@@ -62,10 +64,13 @@ define('base_editor_js', '/app/view/vendor/editor');
             <br><br>
             <button id="close_config" class>Enter</button>
         </div>
+
         <div id="xml-quick" class="hidden">
             <div class="xml-quick-box"></div>
         </div>
-        <div id="error-panel" hidden></div>
+
+        <div id="error-panel"></div>
+
         <div class="painel_path">
             <div class="mune_select_file_dir">
                 <p class="nome_diretory"></p>

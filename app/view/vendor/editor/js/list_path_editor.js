@@ -121,6 +121,7 @@ async function openFile(path) {
     unlockEditor();
     let highlight = $('#highlight-content');
     if (highlight) highlight.textContent = 'Carregando...';
+    if (typeof esconderPainel === 'function') esconderPainel();
 
     let isLayout = path?.endsWith('.xml') && path.includes('/res/layout/');
     setPreviewVisible(isLayout);
@@ -136,6 +137,8 @@ async function openFile(path) {
 
             const displayNome = $('.nome_diretory');
             if (displayNome) displayNome.textContent = path.split('/').pop();
+
+            if (typeof validarLinhaPorIndice === 'function') validarLinhaPorIndice(0, true);
 
             ui.input.dispatchEvent(new Event('input'));
         }

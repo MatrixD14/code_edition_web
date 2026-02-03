@@ -304,14 +304,14 @@ body {
     font-size: var(--font-global);
 }
 #line-numbers {
-    min-width: 5px;
+    min-width: 10px;
     /* width: auto; */
     padding: 15px 5px 15px 5px;
     text-align: right;
     color: #fff;
     overflow: hidden;
     user-select: none;
-    pointer-events: none;
+    /* pointer-events: none; */
     box-sizing: border-box;
     border-right: 1px solid #333;
 }
@@ -327,14 +327,4 @@ body {
 }
 .hidden {
     display: none;
-}
-#line-numbers span {
-    display: block;
-    padding-right: 6px;
-}
-
-#line-numbers span.line-error {
-    color: #ff5f5f;
-    background: rgba(255, 95, 95, 0.1);
-    border-left: 3px solid #ff5f5f;
 }

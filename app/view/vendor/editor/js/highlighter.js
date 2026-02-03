@@ -89,20 +89,18 @@ document.addEventListener('DOMContentLoaded', () => {
         timeout = setTimeout(syncEditorInicial, delay);
     });
 
-    let totalLinhas = 1;
     function updateLineNumbers(text) {
         const total = text.split('\n').length;
-        if (total === totalLinhas && lineNumbers.children.length) return;
-        for (let i = totalLinhas; i < total; i++) {
-            const span = document.createElement('span');
-            span.textContent = i;
-            span.dataset.line = i;
-            lineNumbers.appendChild(span);
+        if (lineNumbers.children.length === total) return;
+        lineNumbers.innerHTML = '';
+        const fragment = document.createDocumentFragment();
+        for (let i = 1; i <= total; i++) {
+            const div = document.createElement('div');
+            div.dataset.line = i;
+            div.textContent = i;
+            fragment.appendChild(div);
         }
-        while (lineNumbers.children.length > total) {
-            lineNumbers.removeChild(lineNumbers.lastChild);
-        }
-        totalLinhas = total;
+        lineNumbers.appendChild(fragment);
     }
 
     const observer = new ResizeObserver(() => {

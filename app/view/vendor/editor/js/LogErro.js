@@ -1,44 +1,68 @@
 const codeInput = document.getElementById('code-input');
-const highlightLayer = document.getElementById('highlight-content');
 const lineNumbers = document.querySelector('#line-numbers');
-const errorPanel = document.getElementById('error-panel');
+const errorPanel = document.querySelector('#error-panel');
 let checando = false;
+let linhaAtiva = null;
 function getCursorLine() {
     return codeInput.value.slice(0, codeInput.selectionStart).split('\n').length - 1;
 }
+('');
 
 function marcarErroVisual(linhaIndex, erros) {
-    const span = lineNumbers.querySelector(`span[data-line="${linhaIndex}"]`);
-    if (!span) return;
-    span._erros = erros || [];
-    if (erros && erros.length) {
-        span.classList.add('line-error');
-    } else {
-        span.classList.remove('line-error');
-        span._erros = null;
+    const div = lineNumbers.querySelector(`div[data-line="${linhaIndex + 1}"]`);
+    if (!div) return;
+    div._erros = erros || [];
+    if (erros && erros.length) div.classList.add('line-error');
+    else {
+        div.classList.remove('line-error');
+        div._erros = null;
     }
-    console.log('linha', linhaIndex, 'span', span, 'erros', erros);
 }
 
-function mostrarPainel(span, x, y) {
-    if (!span._erros || !span._erros.length) return;
+function atualizarNumerosLinha(total, force = false) {
+    if (lineNumbers.children.length === total && !force) return;
+    lineNumbers.innerHTML = '';
+    const fragment = document.createDocumentFragment();
+    for (let i = 1; i <= total; i++) {
+        const div = document.createElement('div');
+        div.dataset.line = i;
+        div.textContent = i;
+        fragment.appendChild(div);
+    }
+    lineNumbers.appendChild(fragment);
+}
+function mostrarPainel(targetElement) {
+    if (!targetElement._erros || !targetElement._erros.length) return;
+
+    if (linhaAtiva === targetElement) {
+        esconderPainel();
+        return;
+    }
+
+    esconderPainel();
+    linhaAtiva = targetElement;
+    targetElement.classList.add('active');
 
     errorPanel.innerHTML = `
-        <div class="line">Linha ${Number(span.dataset.line) + 1}</div>
-        ${span._erros.map((e) => `<div>• ${e.msg}</div>`).join('')}
-    `;
-    errorPanel.style.left = `${x + 10}px`;
-    errorPanel.style.top = `${y + 10}px`;
-    errorPanel.hidden = false;
+            <div class="line">Linha ${targetElement.dataset.line}</div> 
+            ${targetElement._erros.map((e) => `<div>• ${e.msg}</div>`).join('')}
+        `;
+    errorPanel.classList.add('visible');
 }
 
 function esconderPainel() {
-    errorPanel.hidden = true;
+    errorPanel.classList.remove('visible');
+    if (linhaAtiva) linhaAtiva.classList.remove('active');
+    linhaAtiva = null;
 }
 
-function validarLinhaPorIndice(linha) {
-    const texto = codeInput.value.split('\n')[linha] || '';
-    if (typeof validarLinhaXML === 'function') marcarErroVisual(linha, validarLinhaXML(texto));
+function validarLinhaPorIndice(linha, force = false) {
+    const totalLinhas = codeInput.value.split('\n').length;
+    atualizarNumerosLinha(totalLinhas, force);
+    requestAnimationFrame(() => {
+        const texto = codeInput.value.split('\n')[linha] || '';
+        if (typeof validarLinhaXML === 'function') marcarErroVisual(linha, validarLinhaXML(texto));
+    });
 }
 let ultimaLinhaCursor = getCursorLine();
 
@@ -64,30 +88,15 @@ document.addEventListener('selectionchange', () => {
 codeInput.addEventListener('blur', () => {
     validarLinhaPorIndice(ultimaLinhaCursor);
 });
-lineNumbers.addEventListener('mouseover', (e) => {
-    const span = e.target.closest('span.line-error');
-    if (!span) return;
 
-    mostrarPainel(span, e.clientX, e.clientY);
+lineNumbers.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const divClicada = e.target.closest('div');
+    if (divClicada && divClicada.classList.contains('line-error')) mostrarPainel(divClicada);
 });
 
-lineNumbers.addEventListener('mousemove', (e) => {
-    if (!errorPanel.hidden) {
-        errorPanel.style.left = `${e.clientX + 10}px`;
-        errorPanel.style.top = `${e.clientY + 10}px`;
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('#line-numbers') && !e.target.closest('#error-panel')) {
+        esconderPainel();
     }
-});
-
-lineNumbers.addEventListener('mouseout', esconderPainel);
-
-lineNumbers.addEventListener('touchstart', (e) => {
-    const span = e.target.closest('span.line-error');
-    if (!span) return;
-
-    const t = e.touches[0];
-    mostrarPainel(span, t.clientX, t.clientY);
-});
-
-document.addEventListener('touchstart', (e) => {
-    if (!e.target.closest('#line-numbers')) esconderPainel();
 });
