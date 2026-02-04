@@ -76,7 +76,7 @@ body {
 .painel_path {
     width: 300px;
     background: #222;
-    display: flex;
+    display: none;
     flex-direction: column;
     overflow: hidden;
 }

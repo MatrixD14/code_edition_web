@@ -27,9 +27,13 @@ function debounceSend() {
         sendPreviewData(true);
     }, 300);
 }
+function hasErrors() {
+    return lineNumbers.querySelectorAll('.line-error').length > 0;
+}
 
 function sendPreviewData(force = false) {
     if (!previewReady) return;
+    const temErros = hasErrors();
     const xml = ui.input.value;
     if (!force && xml === lastXML) return;
     lastXML = xml;
@@ -37,6 +41,7 @@ function sendPreviewData(force = false) {
     previewChannel.postMessage({
         type: 'update_layout',
         xml,
+        errors: temErros,
         filePath: ui.input.dataset.currentFile,
         projectRoot: state.currentProjectRoot,
     });

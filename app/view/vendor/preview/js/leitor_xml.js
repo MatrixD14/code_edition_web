@@ -3,23 +3,17 @@ let error = document.querySelector('.error');
 let channel = new BroadcastChannel('android_preview');
 let stringsCache = {},
     colorsCache = {},
-    stylesCache = {},
-    drawablesCache = {};
+    stylesCache = {};
 
 let currentProject = '',
-    lastXMLRaw = '',
-    lastLayoutFile = '',
-    lastDeps = null,
     lastTreeHash = '';
-let activeXML = null;
-let activeFile = null;
+
 channel.postMessage({ type: 'ready' });
 channel.onmessage = async (event) => {
     const data = event.data;
+    const errorsInXML = data.errors || false;
     if (!data || data.type !== 'update_layout') return;
     const { xml, projectRoot, filePath } = data;
-    activeXML = xml;
-    activeFile = filePath;
     if (projectRoot && projectRoot !== currentProject) {
         currentProject = projectRoot;
         stringsCache = {};
@@ -30,94 +24,60 @@ channel.onmessage = async (event) => {
         screen.textContent = 'Carregando…';
         await carregarRecursos(projectRoot);
     }
-    lastXMLRaw = null;
-    lastTreeHash = '';
-    requestAnimationFrame(() => renderizar(xml, filePath));
+    requestAnimationFrame(() => renderizar(xml, filePath, errorsInXML));
 };
 
-function simpleHash(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        hash = (hash << 5) - hash + str.charCodeAt(i);
-        hash |= 0;
-    }
-    return hash;
-}
-async function renderizar(xmlString, filePath) {
-    console.log('Renderizando preview para', filePath);
+async function renderizar(xmlString, filePath, errorsInXML = false) {
     if (!filePath || !filePath.includes('/res/layout/')) return;
-    if (lastXMLRaw !== null && xmlString === lastXMLRaw) return;
-    lastXMLRaw = xmlString;
-    lastLayoutFile = filePath;
+    if (xmlString === lastTreeHash && !errorsInXML) return;
+    lastTreeHash = xmlString;
     error.textContent = '';
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
-    let errorNode = xmlDoc.querySelector('parsererror');
-    if (errorNode) {
-        screen.classList.add('hidden');
-        let { tipo, linha } = extrairErroXML(errorNode.textContent);
-        error.innerHTML = `<div style="color:red; padding:10px;">${tipo}<br>
-      ${linha ? `Linha ${linha}` : ''}</div>`;
+    if (errorsInXML) {
+        error.textContent = 'Erros: corrija o erro do XML para visualizar';
+        error.classList.add('show');
         return;
     }
-    screen.classList.remove('hidden');
-    const newHash = simpleHash(xmlString);
-    if (newHash === lastTreeHash) return;
-    lastTreeHash = newHash;
-    const fragment = document.createDocumentFragment();
-    fragment.appendChild(converter(xmlDoc.documentElement));
-    screen.replaceChildren(fragment);
-    screen.classList.add('hidden');
-    requestAnimationFrame(() => {
-        screen.classList.remove('hidden');
-    });
+    error.classList.remove('show');
+    const xmlDoc = new DOMParser().parseFromString(xmlString, 'text/xml');
+    if (xmlDoc.documentElement) {
+        const fragment = document.createDocumentFragment();
+        fragment.appendChild(converter(xmlDoc.documentElement));
+        screen.replaceChildren(fragment);
+    }
 }
 
 async function carregarRecursos(projectRoot) {
-    try {
-        let fetchXML = async (path) => {
-            let r = await fetch(
+    const fetchXML = async (path) => {
+        try {
+            const r = await fetch(
                 `../../../model/editor/read_file.php?file=${encodeURIComponent(projectRoot + path)}&v=${Date.now()}`,
             );
-            if (!r.ok) throw new Error('Falha ao ler');
-            return new DOMParser().parseFromString(await r.text(), 'text/xml');
-        };
-        try {
-            let docColors = await fetchXML('/res/values/colors.xml');
-            for (let c of docColors.getElementsByTagName('color')) {
-                colorsCache[`@color/${c.getAttribute('name')}`] = c.textContent.trim();
-            }
+            return r.ok ? new DOMParser().parseFromString(await r.text(), 'text/xml') : null;
         } catch (e) {
-            console.warn('colors.xml não encontrado');
+            return null;
         }
+    };
 
-        try {
-            let docStrings = await fetchXML('/res/values/strings.xml');
-            for (let s of docStrings.getElementsByTagName('string')) {
-                stringsCache[`@string/${s.getAttribute('name')}`] = s.textContent.trim();
-            }
-        } catch (e) {
-            console.warn('strings.xml não encontrado');
+    const [colors, strings, styles] = await Promise.all([
+        fetchXML('/res/values/colors.xml'),
+        fetchXML('/res/values/strings.xml'),
+        fetchXML('/res/values/styles.xml'),
+    ]);
+    if (colors) {
+        for (let c of colors.getElementsByTagName('color'))
+            colorsCache[`@color/${c.getAttribute('name')}`] = c.textContent.trim();
+    }
+    if (strings) {
+        for (let s of strings.getElementsByTagName('string'))
+            stringsCache[`@string/${s.getAttribute('name')}`] = s.textContent.trim();
+    }
+    if (styles) {
+        for (let s of styles.getElementsByTagName('style')) {
+            let name = s.getAttribute('name');
+            stylesCache[name] = { parent: s.getAttribute('parent'), items: {} };
+            for (let item of s.getElementsByTagName('item'))
+                stylesCache[name].items[item.getAttribute('name')] = item.textContent.trim();
         }
-
-        try {
-            let docStyles = await fetchXML('/res/values/styles.xml');
-            for (let s of docStyles.getElementsByTagName('style')) {
-                let name = s.getAttribute('name');
-                stylesCache[name] = {
-                    parent: s.getAttribute('parent'),
-                    items: {},
-                };
-                for (let item of s.getElementsByTagName('item')) {
-                    stylesCache[name].items[item.getAttribute('name')] = item.textContent.trim();
-                }
-            }
-        } catch (e) {
-            console.warn('styles.xml não encontrado');
-        }
-        console.log('Recursos sincronizados com sucesso');
-    } catch (e) {
-        console.error('Falha crítica ao sincronizar recursos:', e);
     }
 }
 
@@ -158,8 +118,7 @@ function aplicarEstilo(el, styleName) {
 }
 
 function converter(node) {
-    const tag = node.tagName;
-    const handler = viewHandlers[tag];
+    const handler = viewHandlers?.[node.tagName];
     const el = handler ? handler(node) : document.createElement('div');
     el.style.boxSizing = 'border-box';
     let styleAttr = node.getAttribute('style');

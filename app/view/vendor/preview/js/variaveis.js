@@ -5,7 +5,7 @@ const androidColors = {
     '@android:color/darker_gray': '#444444',
     '@android:color/holo_blue_light': '#33b5e5',
 };
-
+let drawablesCache = {};
 const attributeHandlers = {
     layout_width(el, value) {
         if (value === 'match_parent') el.style.width = '100%';

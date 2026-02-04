@@ -3,11 +3,12 @@ let state = {
     currentProjectRoot: '',
 };
 let currentSelectedPath = '';
-
-ui.file_push_open.addEventListener(
-    'click',
-    () => (ui.painel_path.style.display = ui.painel_path.style.display === 'none' ? 'block' : 'none'),
-);
+let pathopen = false;
+ui.file_push_open.addEventListener('click', () => {
+    if (pathopen === true) {
+        ui.painel_path.style.display = ui.painel_path.style.display === 'none' ? 'flex' : 'none';
+    }
+});
 ui.btnOpenProject.addEventListener('click', async (e) => {
     e.stopPropagation();
     ui.projectSelector.classList.toggle('hidden');
@@ -42,7 +43,6 @@ window.addEventListener('DOMContentLoaded', () => {
 ui.projectsList.addEventListener('click', (e) => {
     const li = e.target.closest('li');
     if (!li) return;
-
     let projectPath = li.dataset.path,
         projectName = li.textContent;
 
@@ -58,6 +58,8 @@ ui.projectsList.addEventListener('click', (e) => {
     state.currentSelectedFolder = projectPath;
     $('.nome_diretory').textContent = projectName;
     ui.projectSelector.classList.add('hidden');
+    ui.painel_path.style.display = 'flex';
+    pathopen = true;
     ui.pathDisplay.innerHTML = '<li>Carregando projeto...</li>';
     lockEditor('Selecione um arquivo para editar');
     initProjectTree(projectPath);
@@ -122,7 +124,6 @@ async function openFile(path) {
     let highlight = $('#highlight-content');
     if (highlight) highlight.textContent = 'Carregando...';
     if (typeof esconderPainel === 'function') esconderPainel();
-
     let isLayout = path?.endsWith('.xml') && path.includes('/res/layout/');
     setPreviewVisible(isLayout);
 
@@ -258,12 +259,8 @@ async function createResource(type) {
             alert('Criado com sucesso!');
             if (targetDir === state.currentProjectRoot) {
                 await initProjectTree(state.currentProjectRoot);
-            } else {
-                await refreshFolder(targetDir);
-            }
-        } else {
-            alert('Erro: ' + result.message);
-        }
+            } else await refreshFolder(targetDir);
+        } else alert('Erro: ' + result.message);
     } catch (err) {
         console.error(err);
     }

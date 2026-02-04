@@ -17,9 +17,6 @@
         <div class="error"></div>
     </div>
     <script src="./js/variaveis.js"></script>
-    <script src="../editor/js/autocomplete/list_tag_xml.js"></script>
-    <script src="../editor/js/autocomplete/function_xml.js"></script>
-    <script src="./js/verifErro.js"></script>
     <script src="./js/leitor_xml.js"></script>
     <script src="./js/drawables.js"></script>
 </body>

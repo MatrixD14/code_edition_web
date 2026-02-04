@@ -1,18 +1,3 @@
-///tag
-function extrairErroXML(errorText) {
-    let tipo = 'Erro de sintaxe no XML';
-    let linha = null;
-    let tipoMatch = errorText.match(/Erro no codigo do XML:[^\n]+/);
-    if (tipoMatch) tipo = tipoMatch[0].replace('Erro no codigo do XML:', '').trim();
-
-    let linhaMatch = errorText.match(/Linha número (\d+)/);
-    if (linhaMatch) linha = linhaMatch[1];
-    if (errorText.includes('tag sem correspondência')) tipo = 'Tag não fechada ou fechamento incorreto (>)';
-    else if (errorText.includes('formato incorreto')) tipo = 'Formato inválido no XML';
-    else if (errorText.includes('Esperado: .')) tipo = 'Esperado fechamento de tag (>)';
-    return { tipo, linha };
-}
-
 function getAttrValueType(attrName) {
     return window.attrValueType[attrName] || null;
 }

@@ -11,10 +11,19 @@ body {
     justify-content: center;
 }
 .error {
-    background-color: #fff;
-    color: #000;
-    margin-inline-start: 1dvw;
-    width: 250px;
+    display: flex;
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    background: #252526;
+    color: #fff;
+    z-index: 1000;
+    width: 30%;
+    min-width: 400px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    padding: 100%;
+    opacity: 0;
 }
 .smartphone {
     width: 360px;
@@ -26,6 +35,7 @@ body {
     overflow-x: hidden;
     position: relative;
 }
-.hidden {
-    display: none;
+.error.show {
+    opacity: 1;
+    pointer-events: auto;
 }
