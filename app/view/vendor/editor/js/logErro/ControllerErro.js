@@ -15,24 +15,10 @@ function marcarErroVisual(linhaIndex, erros) {
     }
 }
 
-// function atualizarNumerosLinha(total, force = false) {
-//     if (lineNumbers.children.length === total && !force) return;
-//     lineNumbers.innerHTML = '';
-//     const fragment = document.createDocumentFragment();
-//     for (let i = 1; i <= total; i++) {
-//         const div = document.createElement('div');
-//         div.dataset.line = i;
-//         div.textContent = i;
-//         fragment.appendChild(div);
-//     }
-//     lineNumbers.appendChild(fragment);
-// }
-
 function atualizarNumerosLinha(total, force = false) {
     const atual = lineNumbers.children.length;
     if (atual === total && !force) return;
     if (total > atual) {
-        // Se o código cresceu, adicionamos apenas as linhas novas
         const fragment = document.createDocumentFragment();
         for (let i = atual + 1; i <= total; i++) {
             const div = document.createElement('div');
@@ -42,7 +28,6 @@ function atualizarNumerosLinha(total, force = false) {
         }
         lineNumbers.appendChild(fragment);
     } else if (total < atual) {
-        // Se o código diminuiu, removemos as linhas que sobraram do final
         for (let i = atual; i > total; i--) {
             lineNumbers.lastElementChild.remove();
         }
@@ -62,9 +47,9 @@ function mostrarPainel(targetElement) {
     targetElement.classList.add('active');
 
     errorPanel.innerHTML = `
-            <div class="line">Linha ${targetElement.dataset.line}</div> 
-            ${targetElement._erros.map((e) => `<div>• ${e.msg}</div>`).join('')}
-        `;
+    <div class="line">Linha ${targetElement.dataset.line}</div> 
+    ${targetElement._erros.map((e) => `<div>• ${e.msg}${e.tag ? ` em &lt;${e.tag}&gt;` : ''}</div>`).join('')}
+`;
     errorPanel.classList.add('visible');
 }
 
@@ -91,9 +76,10 @@ function validarCodigo(force = false) {
             marcarErroVisual(erro.linha, [erro]);
         });
     } else {
-        linhas.forEach((txt, idx) => {
-            const errosXml = validarLinhaXML(txt);
-            if (errosXml.length > 0) marcarErroVisual(idx, errosXml);
+        const errosXml = validarBlocoXML(texto);
+
+        errosXml.forEach((erro) => {
+            marcarErroVisual(erro.linha, [erro]);
         });
     }
 }

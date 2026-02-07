@@ -57,10 +57,10 @@ function validarValor(attrName, value) {
     return null;
 }
 
-function validarLinhaXML(linhaTexto) {
+function validarAtributoMainDrawable(linhaTexto) {
+    let erros = [];
     const regex = /android:([\w_]+)\s*=\s*"([^"]*)"/g;
     let match;
-    let erros = [];
     while ((match = regex.exec(linhaTexto))) {
         const attr = match[1];
         const value = match[2];
@@ -69,9 +69,101 @@ function validarLinhaXML(linhaTexto) {
             erros.push({
                 attr,
                 value,
-                ...erro,
+                msg: erro.msg,
+                level: erro.level || 'error',
             });
         }
     }
+    return erros;
+}
+function validadorAtributoStyle(linhaTexto) {
+    let erros = [];
+
+    const styleRegex = /<item\s+name\s*=\s*"android:([\w_]+)"\s*>([^<]*)<\/item>/;
+
+    const styleMatch = linhaTexto.match(styleRegex);
+
+    if (styleMatch) {
+        const attr = styleMatch[1];
+        const value = styleMatch[2].trim();
+
+        const erro = validarValor(attr, value);
+
+        if (erro) {
+            erros.push({
+                attr,
+                value,
+                msg: `[style] ${erro.msg}`,
+                level: erro.level || 'error',
+            });
+        }
+    }
+
+    return erros;
+}
+
+function validarBlocoXML(texto) {
+    const erros = [];
+    const linhas = texto.split('\n');
+    const schema = detectarSchema(texto);
+    let tagAtual = null;
+
+    linhas.forEach((linha, idx) => {
+        const openTag = linha.match(/<\s*([A-Za-z0-9_\-]+)/);
+
+        if (openTag) {
+            tagAtual = openTag[1];
+
+            const erroTag = validarTagExiste(tagAtual, schema);
+
+            if (erroTag) {
+                erros.push({
+                    ...erroTag,
+                    linha: idx,
+                    tag: tagAtual,
+                });
+            }
+        }
+
+        if (tagAtual) {
+            if (schema === window.xmlSchemas.values.styles) {
+                validarStyle(linha, tagAtual).forEach((e) =>
+                    erros.push({
+                        ...e,
+                        linha: idx,
+                        tag: tagAtual,
+                    }),
+                );
+                validadorAtributoStyle(linha).forEach((e) =>
+                    erros.push({
+                        ...e,
+                        linha: idx,
+                        tag: tagAtual,
+                    }),
+                );
+            } else {
+                validarTag(linha, tagAtual, schema).forEach((e) =>
+                    erros.push({
+                        ...e,
+                        linha: idx,
+                        tag: tagAtual,
+                    }),
+                );
+                validarAtributoMainDrawable(linha).forEach((e) =>
+                    erros.push({
+                        ...e,
+                        linha: idx,
+                        tag: tagAtual,
+                    }),
+                );
+            }
+        }
+
+        if (tagAtual && (linha.includes('/>') || linha.includes(`</${tagAtual}>`))) {
+            tagAtual = null;
+        }
+    });
+    erros.push(...validarFechamentoTags(texto));
+
     return erros;
 }

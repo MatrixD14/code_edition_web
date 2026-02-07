@@ -41,6 +41,7 @@ window.xml_tags = {
             android: [
                 'id',
                 'layout_width',
+                'layout_weight',
                 'layout_height',
                 'layout_margin',
                 'layout_marginTop',
@@ -181,7 +182,16 @@ window.xml_tags = {
     },
     manifest: {
         namespaces: ['android', 'xmlns'],
-        tags: ['manifest', 'application', 'activity', 'category', 'intent-filter', 'uses-permission', 'uses-sdk'],
+        tags: [
+            'manifest',
+            'application',
+            'activity',
+            'category',
+            'intent-filter',
+            'uses-permission',
+            'uses-sdk',
+            'action',
+        ],
         attrs: {
             category: ['name'],
             'uses-permission': ['name'],
@@ -189,6 +199,7 @@ window.xml_tags = {
             manifest: ['versionCode', 'versionName'],
             'uses-sdk': ['minSdkVersion', 'targetSdkVersion'],
             application: ['name', 'icon', 'label', 'theme', 'allowBackup', 'supportsRtl', 'debuggable'],
+            action: ['name'],
         },
     },
 };
@@ -205,6 +216,7 @@ window.xml_values = {
         string: '@string/',
         color: '@color/',
         drawable: '@drawable/',
+        icon: ['@mipmap/', '@drawable/'],
         style: '@style/',
         id_ref: '@id/',
         id_new: '@+id/',
@@ -252,7 +264,7 @@ window.attrValueType = {
     label: 'refs.string',
     foreground: 'refs.drawable',
     drawable: 'refs.drawable',
-    icon: 'refs.drawable',
+    icon: 'refs.icon',
     src: 'refs.drawable',
     backgroundTint: 'refs.color',
     color: 'refs.color',

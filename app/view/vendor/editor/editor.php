@@ -143,9 +143,12 @@ define('base_editor_js', '/app/view/vendor/editor');
     <script src="<?= base_editor_js ?>/js/autocomplete/function_java.js"></script>
     <script src="<?= base_editor_js ?>/js/autocomplete/function_xml.js"></script>
     <script src="<?= base_editor_js ?>/js/autocomplete/autocomplet.js"></script>
+    <script src="<?= base_editor_js ?>/js/logErro/verifErroTag.js"></script>
+    <script src="<?= base_editor_js ?>/js/logErro/verifErroAtributo.js"></script>
     <script src="<?= base_editor_js ?>/js/logErro/verifErroValueXml.js"></script>
     <script src="<?= base_editor_js ?>/js/logErro/verifErrojava.js"></script>
     <script src="<?= base_editor_js ?>/js/logErro/ControllerErro.js"></script>
+
 </body>
 
 </html>

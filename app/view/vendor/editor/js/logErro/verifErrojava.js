@@ -1,75 +1,130 @@
 function validarJava(textoCompleto) {
-    let erros = [];
+    const erros = [];
+
+    erros.push(...analisarParenteses(textoCompleto));
+
     const linhas = textoCompleto.split('\n');
     let emDeclaracaoMultilinha = false;
 
     linhas.forEach((linha, index) => {
-        const l = linha.trim();
-        if (l === '' || l.startsWith('//') || l.startsWith('/*') || l.startsWith('*') || l.startsWith('@')) return;
+        const limpa = removerConteudoStrings(linha);
+        const l = limpa.trim();
 
-        if (l.startsWith('for') && l.includes('(') && l.includes(')')) {
-            const conteudoParenteses = l.substring(l.indexOf('(') + 1, l.lastIndexOf(')'));
-            const contagemPontosVirgula = (conteudoParenteses.match(/;/g) || []).length;
-            const contagemDoisPontos = (conteudoParenteses.match(/:/g) || []).length;
-            if (contagemDoisPontos > 0) {
-                if (contagemDoisPontos !== 1 || contagemPontosVirgula > 0) {
-                    erros.push({
-                        linha: index,
-                        msg: 'Sintaxe de "for-each" inválida. Use apenas um ":" e nenhum ";".',
-                    });
-                }
-            } else {
-                if (contagemPontosVirgula !== 2) {
-                    const msgErro =
-                        contagemPontosVirgula < 2
-                            ? 'Faltam ";" internos no "for".'
-                            : 'Excesso de ";" internos no "for".';
-                    erros.push({ linha: index, msg: msgErro });
-                }
-            }
-        }
+        if (!l || l.startsWith('//') || l.startsWith('/*') || l.startsWith('@')) return;
 
-        const blocosEOperadores = ['{', '}', '};', '});', '||', '&&', '?', ':'];
-        if (blocosEOperadores.some((term) => l.endsWith(term))) {
+        const operadoresFim = ['||', '&&', '%', '==', '!=', '<', '>', '<=', '>=', '?', ':'];
+
+        if (operadoresFim.some((op) => l.endsWith(op))) return;
+
+        if (l.endsWith('{') || l.endsWith('}') || l.endsWith('};') || l.endsWith('});')) {
             emDeclaracaoMultilinha = false;
             return;
         }
 
+        if (l.startsWith('for')) {
+            const abre = limpa.indexOf('(');
+            const fecha = limpa.lastIndexOf(')');
+
+            if (abre === -1 || fecha === -1 || fecha <= abre) {
+                erros.push({
+                    linha: index,
+                    coluna: limpa.length,
+                    msg: 'for com parênteses inválidos',
+                });
+
+                return;
+            }
+
+            const dentro = limpa.slice(abre + 1, fecha);
+
+            const semi = (dentro.match(/;/g) || []).length;
+            const colon = (dentro.match(/:/g) || []).length;
+
+            if (!colon && semi !== 2)
+                erros.push({
+                    linha: index,
+                    coluna: abre,
+                    msg: 'for precisa de 2 ;',
+                });
+
+            if (colon > 1 || (colon === 1 && semi))
+                erros.push({
+                    linha: index,
+                    coluna: abre,
+                    msg: 'for-each inválido',
+                });
+        }
+
         if (l.endsWith(',')) {
-            const eInicioDeclaracao = java_base.some((t) => l.startsWith(t)) || l.includes('(');
-            if (eInicioDeclaracao || emDeclaracaoMultilinha) emDeclaracaoMultilinha = true;
-            else erros.push({ linha: index, msg: 'Vírgula (,) inesperada.' });
+            emDeclaracaoMultilinha = true;
             return;
         }
 
-        if (!l.endsWith(';')) {
-            const eTipoBase = java_base.some((tipo) => l.startsWith(tipo));
-            const eMetodo = java_string_methods.some((m) => l.includes(m.split('(')[0]));
-            const eAtribuicao = l.includes('=');
-            const eIncremento = l.includes('++') || l.includes('--');
-            const eChamadaMetodo = l.includes('(') && l.includes(')');
-            const eInstancia = l.startsWith('new ');
-            const eImportPackage = l.startsWith('import ') || l.startsWith('package ');
-            const eFor = l.startsWith('for');
-            const eEstruturaControle = ['if', 'while', 'switch'].some((kw) => l.startsWith(kw));
+        const controle = ['if', 'for', 'while', 'switch'];
 
-            if (
-                emDeclaracaoMultilinha ||
-                l.startsWith('return') ||
-                eTipoBase ||
-                eMetodo ||
-                eAtribuicao ||
-                eIncremento ||
-                eChamadaMetodo ||
-                eInstancia ||
-                eImportPackage ||
-                eEstruturaControle ||
-                eFor
-            ) {
-                if (!l.endsWith('{')) erros.push({ linha: index, msg: 'Faltando ponto e vírgula (;)' });
-            }
+        if (controle.some((k) => l.startsWith(k)) && l.includes('(') && l.endsWith(')')) return;
+
+        if (!l.endsWith(';')) {
+            const chamadaMetodo = /\w+\s*\(.*\)/.test(l);
+
+            const precisaSemi =
+                l.includes('=') ||
+                chamadaMetodo ||
+                l.includes('++') ||
+                l.includes('--') ||
+                l.startsWith('new ') ||
+                l.startsWith('import ') ||
+                l.startsWith('package ') ||
+                emDeclaracaoMultilinha;
+
+            if (precisaSemi)
+                erros.push({
+                    linha: index,
+                    coluna: limpa.length,
+                    msg: 'Faltando ;',
+                });
         }
+
         emDeclaracaoMultilinha = false;
     });
+
     return erros;
+}
+
+function analisarParenteses(texto) {
+    const erros = [];
+    const pilha = [];
+
+    texto.split('\n').forEach((linha, ln) => {
+        const linhaLimpa = removerConteudoStrings(linha).split('//')[0].split('/*')[0];
+
+        for (let col = 0; col < linhaLimpa.length; col++) {
+            const c = linhaLimpa[col];
+
+            if (c === '(') pilha.push({ linha: ln, coluna: col });
+
+            if (c === ')') {
+                if (!pilha.length)
+                    erros.push({
+                        linha: ln,
+                        coluna: col,
+                        msg: 'Parêntese não fechado',
+                    });
+                else pilha.pop();
+            }
+        }
+    });
+
+    pilha.forEach((p) => {
+        erros.push({
+            linha: p.linha,
+            coluna: p.coluna,
+            msg: 'Parêntese não fechado',
+        });
+    });
+
+    return erros;
+}
+function removerConteudoStrings(linha) {
+    return linha.replace(/"([^"\\]|\\.)*"/g, '""').replace(/'([^'\\]|\\.)*'/g, "''");
 }
