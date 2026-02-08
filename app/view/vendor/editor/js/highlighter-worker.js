@@ -260,15 +260,17 @@ function highlightJava(text) {
     const state = createState();
     return lines.map((line) => highlightLine(line, state)).join('\n');
 }
-const escapeHTML = (str) =>
-    str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/ $/gm, ' \u00A0');
+const escapeHTML = (str = '') =>
+    String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/ $/gm, ' \u00A0');
 
 self.onmessage = (e) => {
-    const { code, isXML, msgId } = e.data;
+    const { code = '', isXML, index, msgId } = e.data || {};
     const escaped = escapeHTML(code);
     const html = isXML ? highlightXML(escaped) : highlightJava(escaped);
+
     self.postMessage({
         html: html + (code.endsWith('\n') ? ' ' : ''),
+        index,
         msgId,
     });
 };

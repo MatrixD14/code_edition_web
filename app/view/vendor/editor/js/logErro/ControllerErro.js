@@ -1,18 +1,53 @@
 const codeInput = document.getElementById('code-input');
 const lineNumbers = document.querySelector('#line-numbers');
 const errorPanel = document.querySelector('#error-panel');
+const WORKER_COUNT = Math.min(2, navigator.hardwareConcurrency || 2);
+
+const worker = Array.from(
+    { length: WORKER_COUNT },
+    () => new Worker('/app/view/vendor/editor/js/logErro/validator-worker.js'),
+);
+
 let delayValidacao;
 let linhaAtiva = null;
+let linhasComErro = new Set();
+let cacheTexto = '';
+worker.forEach((workers) => {
+    workers.onmessage = function (e) {
+        if (!Array.isArray(e.data)) {
+            const { linha, erros = [] } = e.data;
+
+            marcarErroVisual(linha, erros.length ? erros : null);
+            return;
+        }
+
+        e.data.forEach((erro) => {
+            marcarErroVisual(erro.linha, [erro]);
+        });
+    };
+});
 
 function marcarErroVisual(linhaIndex, erros) {
-    const div = lineNumbers.querySelector(`div[data-line="${linhaIndex + 1}"]`);
+    const div = lineNumbers.children[linhaIndex];
     if (!div) return;
     div._erros = erros || [];
-    if (erros && erros.length) div.classList.add('line-error');
-    else {
+    if (erros && erros.length) {
+        div.classList.add('line-error');
+        linhasComErro.add(linhaIndex);
+    } else {
         div.classList.remove('line-error');
         div._erros = null;
     }
+}
+function limparErrosVisuais() {
+    linhasComErro.forEach((i) => {
+        const div = lineNumbers.children[i];
+        if (div) {
+            div.classList.remove('line-error');
+            div._erros = null;
+        }
+    });
+    linhasComErro.clear();
 }
 
 function atualizarNumerosLinha(total, force = false) {
@@ -61,46 +96,33 @@ function esconderPainel() {
 
 function validarCodigo(force = false) {
     const texto = codeInput.value;
+    if (!force && texto === cacheTexto) return;
+    cacheTexto = texto;
     const linhas = texto.split('\n');
-    const totalLinhas = linhas.length;
-    atualizarNumerosLinha(totalLinhas, force);
-    lineNumbers.querySelectorAll('.line-error').forEach((div) => {
-        div.classList.remove('line-error');
-        div._erros = null;
+    if (linhas.length > 8000 && !force) return;
+    atualizarNumerosLinha(linhas.length, force);
+
+    limparErrosVisuais();
+    const isJava = (window.editor?.dataset?.currentFile || '').endsWith('.java') || texto.includes('public class');
+
+    const meio = Math.ceil(linhas.length / worker.length);
+
+    limparErrosVisuais();
+
+    worker.forEach((worker, i) => {
+        const inicio = i * meio;
+        const fim = inicio + meio;
+
+        const bloco = linhas.slice(inicio, fim);
+
+        worker.postMessage({
+            texto: bloco.join('\n'),
+            isJava,
+            offset: inicio,
+        });
     });
-    const isJava = (editor.dataset.currentFile || '').endsWith('.java') || texto.includes('public class');
-
-    if (isJava) {
-        const todosErros = validarJava(texto);
-        todosErros.forEach((erro) => {
-            marcarErroVisual(erro.linha, [erro]);
-        });
-    } else {
-        const errosXml = validarBlocoXML(texto);
-
-        errosXml.forEach((erro) => {
-            marcarErroVisual(erro.linha, [erro]);
-        });
-    }
 }
-
-function checarMudancaDeLinha() {
-    clearTimeout(delayValidacao);
-    delayValidacao = setTimeout(() => {
-        requestAnimationFrame(() => {
-            validarCodigo();
-        });
-    }, 400);
-}
-codeInput.addEventListener('keyup', checarMudancaDeLinha);
-codeInput.addEventListener('click', checarMudancaDeLinha);
-codeInput.addEventListener('touchend', checarMudancaDeLinha);
-document.addEventListener('selectionchange', () => {
-    if (document.activeElement === codeInput) checarMudancaDeLinha();
-});
-codeInput.addEventListener('blur', () => {
-    validarCodigo();
-});
+window.validarCodigo = validarCodigo;
 
 lineNumbers.addEventListener('click', (e) => {
     e.stopPropagation();

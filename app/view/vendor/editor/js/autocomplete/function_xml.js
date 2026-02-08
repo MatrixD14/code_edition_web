@@ -171,8 +171,8 @@ function xmlAttrsProvider(ctx, schema) {
                 const tagData = schema.tagAttrs[ctx.tagName];
                 if (Array.isArray(tagData)) sourceAttrs.push(...tagData);
             }
-        } else if (ns === 'tools') sourceAttrs.push(...(window.xmlSchemas?.namespaces?.tools?.attrs || []));
-        else if (ns === 'xmlns') sourceAttrs.push(...(window.xmlSchemas?.namespaces?.xmlns?.attrs || []));
+        } else if (ns === 'tools') sourceAttrs.push(...(GLOBAL.xmlSchemas?.namespaces?.tools?.attrs || []));
+        else if (ns === 'xmlns') sourceAttrs.push(...(GLOBAL.xmlSchemas?.namespaces?.xmlns?.attrs || []));
         for (const a of sourceAttrs || []) if (a.toLowerCase().startsWith(lowPartial)) items.push(a);
     } else {
         if (schema.allowNamespaces) for (const ns of schema.allowNamespaces) if (ns.startsWith(p)) items.push(ns + ':');
@@ -185,7 +185,7 @@ function xmlAttrsProvider(ctx, schema) {
 function xmlStyleItemNameProvider(ctx, schema) {
     if (ctx.type !== 'item-name') return null;
     const p = ctx.prefix.toLowerCase();
-    const attrs = Object.keys(window.attrValueType || {});
+    const attrs = Object.keys(GLOBAL.attrValueType || {});
     let items = [];
     if (p.includes(':')) {
         const [ns, partial = ''] = p.split(':');
@@ -196,9 +196,9 @@ function xmlStyleItemNameProvider(ctx, schema) {
 
 function xmlStyleItemValueProvider(ctx) {
     if (ctx.type !== 'item-value') return null;
-    const type = window.attrValueType[ctx.attrName];
+    const type = GLOBAL.attrValueType[ctx.attrName];
     if (!type) return null;
-    let values = window.xml_values;
+    let values = GLOBAL.xml_values;
     const parts = type.split('.');
     for (const part of parts) values = values?.[part];
     if (!values) return null;
@@ -214,11 +214,11 @@ function xmlXmlnsValueProvider(ctx, schema) {
     if (ctx.type !== 'attr-value') return null;
     if (!ctx.attrName.startsWith('xmlns:')) return null;
     const typed = ctx.attrName.split(':')[1] || '';
-    if (!window.xmlSchemas.namespaces.xmlns?.attrs) return null;
-    const match = window.xmlSchemas.namespaces.xmlns.attrs.find((ns) => ns.startsWith(typed));
+    if (!GLOBAL.xmlSchemas.namespaces.xmlns?.attrs) return null;
+    const match = GLOBAL.xmlSchemas.namespaces.xmlns.attrs.find((ns) => ns.startsWith(typed));
     if (!match) return null;
-    const idx = window.xmlSchemas.namespaces.xmlns.attrs.indexOf(match);
-    const value = window.xmlSchemas.namespaces.xmlns.values?.[idx];
+    const idx = GLOBAL.xmlSchemas.namespaces.xmlns.attrs.indexOf(match);
+    const value = GLOBAL.xmlSchemas.namespaces.xmlns.values?.[idx];
     if (!value) return null;
     return {
         items: [value],
@@ -229,10 +229,10 @@ function xmlXmlnsValueProvider(ctx, schema) {
 function xmlAttrValueProvider(ctx, schema) {
     if (ctx.type !== 'attr-value') return null;
     const attr = ctx.attrName.replace(/^.*:/, '');
-    const type = window.attrValueType[attr];
+    const type = GLOBAL.attrValueType[attr];
     if (!type) return null;
     const parts = type.split('.');
-    let values = window.xml_values;
+    let values = GLOBAL.xml_values;
     for (const part of parts) values = values?.[part];
     if (!values) return null;
     let items = Array.isArray(values) ? [...values] : [values];

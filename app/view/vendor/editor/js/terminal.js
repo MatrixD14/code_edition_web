@@ -40,7 +40,7 @@ term.inputTerm.addEventListener('keydown', async (e) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     partial: partialName,
-                    cwd: window.terminalCWD || (typeof currentProjectRoot !== 'undefined' ? currentProjectRoot : ''),
+                    cwd: GLOBAL.terminalCWD || (typeof currentProjectRoot !== 'undefined' ? currentProjectRoot : ''),
                 }),
             });
             const suggestions = await response.json();
@@ -67,7 +67,7 @@ term.inputTerm.addEventListener('keydown', async (e) => {
             return;
         }
 
-        let effectiveCWD = window.terminalCWD || terminalCWD || '';
+        let effectiveCWD = GLOBAL.terminalCWD || terminalCWD || '';
 
         const pathPrompt = getRelativePath(terminalCWD);
         term.outputTerm.innerHTML += `<div><span style="color:#56b6c2">user@android:${pathPrompt} $</span> ${cmd}</div>`;
@@ -88,7 +88,7 @@ term.inputTerm.addEventListener('keydown', async (e) => {
 
             if (res.newCwd) {
                 terminalCWD = res.newCwd;
-                window.terminalCWD = res.newCwd;
+                GLOBAL.terminalCWD = res.newCwd;
             }
 
             if (res.output) {
@@ -101,7 +101,7 @@ term.inputTerm.addEventListener('keydown', async (e) => {
         } catch (err) {
             term.outputTerm.innerHTML += `<div style="color:red">Erro crítico: Verifique a conexão com o terminal.php</div>`;
             terminalCWD = '';
-            window.terminalCWD = '';
+            GLOBAL.terminalCWD = '';
             console.error('Erro no terminal:', err);
         }
         scrollToBottom();
@@ -113,7 +113,7 @@ terminal_toggle.addEventListener('click', () => {
     display_terminal.classList.toggle('hidden');
     if (isHidden) term.inputTerm.focus();
 });
-window.addEventListener('keydown', (e) => {
+GLOBAL.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.key === '"') {
         e.preventDefault();
         terminal_toggle.click();

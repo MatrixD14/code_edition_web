@@ -1,4 +1,4 @@
-window.xml_tags = {
+GLOBAL.xml_tags = {
     layout: {
         namespaces: ['android', 'tools', 'xmlns'],
         tags: [
@@ -204,7 +204,7 @@ window.xml_tags = {
     },
 };
 
-window.xml_values = {
+GLOBAL.xml_values = {
     dimension: ['0dp', '5dp', '10dp', '20dp', 'wrap_content', 'match_parent'],
     size: ['12sp', '14sp', '16sp', '20sp', '30sp', '40sp'],
     boolean: ['true', 'false'],
@@ -232,7 +232,7 @@ window.xml_values = {
     },
 };
 
-window.attrValueType = {
+GLOBAL.attrValueType = {
     layout_width: 'dimension',
     layout_height: 'dimension',
     layout_margin: 'dimension',
@@ -309,18 +309,18 @@ window.attrValueType = {
     max: 'valoresInt',
 };
 
-window.xmlSchemas = {
+GLOBAL.xmlSchemas = {
     layout: {
-        allowNamespaces: window.xml_tags.layout.namespaces,
-        tags: window.xml_tags.layout.tags,
-        baseAttrs: window.xml_tags.layout.baseAttrs,
-        tagAttrs: window.xml_tags.layout.tagAttrs,
+        allowNamespaces: GLOBAL.xml_tags.layout.namespaces,
+        tags: GLOBAL.xml_tags.layout.tags,
+        baseAttrs: GLOBAL.xml_tags.layout.baseAttrs,
+        tagAttrs: GLOBAL.xml_tags.layout.tagAttrs,
     },
 
     drawable: {
-        allowNamespaces: window.xml_tags.drawable.namespaces,
-        tags: window.xml_tags.drawable.tags,
-        tagAttrs: window.xml_tags.drawable.tagAttrs,
+        allowNamespaces: GLOBAL.xml_tags.drawable.namespaces,
+        tags: GLOBAL.xml_tags.drawable.tags,
+        tagAttrs: GLOBAL.xml_tags.drawable.tagAttrs,
     },
 
     namespaces: {
@@ -335,29 +335,29 @@ window.xmlSchemas = {
     values: {
         strings: {
             allowNamespaces: [],
-            tags: window.xml_tags.values.strings.tags,
+            tags: GLOBAL.xml_tags.values.strings.tags,
             tagAttrs: {
-                string: window.xml_tags.values.strings.attrs,
-                plurals: window.xml_tags.values.strings.attrs,
+                string: GLOBAL.xml_tags.values.strings.attrs,
+                plurals: GLOBAL.xml_tags.values.strings.attrs,
             },
         },
         colors: {
             allowNamespaces: [],
-            tags: window.xml_tags.values.colors.tags,
+            tags: GLOBAL.xml_tags.values.colors.tags,
             tagAttrs: {
-                color: window.xml_tags.values.colors.attrs,
+                color: GLOBAL.xml_tags.values.colors.attrs,
             },
         },
         styles: {
             allowNamespaces: [],
-            tags: window.xml_tags.values.styles.tags,
-            tagAttrs: window.xml_tags.values.styles.attrs,
+            tags: GLOBAL.xml_tags.values.styles.tags,
+            tagAttrs: GLOBAL.xml_tags.values.styles.attrs,
         },
     },
 
     manifest: {
-        allowNamespaces: window.xml_tags.manifest.namespaces,
-        tags: window.xml_tags.manifest.tags,
-        tagAttrs: window.xml_tags.manifest.attrs,
+        allowNamespaces: GLOBAL.xml_tags.manifest.namespaces,
+        tags: GLOBAL.xml_tags.manifest.tags,
+        tagAttrs: GLOBAL.xml_tags.manifest.attrs,
     },
 };

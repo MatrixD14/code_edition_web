@@ -5,7 +5,7 @@ config.configSettings.addEventListener('click', (e) => {
 });
 config.painelConfig.addEventListener('click', (e) => e.stopPropagation());
 document.addEventListener('click', () => config.painelConfig.classList.add('hidden'));
-window.addEventListener('DOMContentLoaded', () => {
+GLOBAL.addEventListener('DOMContentLoaded', () => {
     let fontSize = Number(window.EDITOR_CONFIG.fontsizevalue) || 14;
     document.documentElement.style.setProperty('--font-global', fontSize + 'px');
     const input = $('#font_size');

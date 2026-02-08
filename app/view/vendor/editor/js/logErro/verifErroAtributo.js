@@ -8,10 +8,10 @@ function atributoPermitido(tag, attr, schema) {
         return base.includes(nomeAttr) || tagAttrs.includes(nomeAttr);
     }
     if (namespace === 'tools') {
-        return window.xmlSchemas.namespaces.tools.attrs.includes(nomeAttr);
+        return GLOBAL.xmlSchemas.namespaces.tools.attrs.includes(nomeAttr);
     }
     if (namespace === 'xmlns') {
-        return window.xmlSchemas.namespaces.xmlns.attrs.includes(nomeAttr);
+        return GLOBAL.xmlSchemas.namespaces.xmlns.attrs.includes(nomeAttr);
     }
 
     return true;
@@ -49,7 +49,7 @@ function validarStyle(linhaTexto, tag) {
     if (!match) return erros;
     const attrFull = match[1];
     const [, attr] = attrFull.split(':');
-    if (!window.attrValueType[attr]) {
+    if (!GLOBAL.attrValueType[attr]) {
         erros.push({
             msg: `Atributo ${attr} inválido em <${tag}>`,
         });
@@ -59,14 +59,20 @@ function validarStyle(linhaTexto, tag) {
 }
 
 function detectarSchema(texto) {
-    const primeiraTag = texto.match(/<\s*([a-zA-Z\-]+)/);
-    if (!primeiraTag) return window.xmlSchemas.layout;
-    const tag = primeiraTag[1];
-    if (window.xmlSchemas.drawable.tags.includes(tag)) return window.xmlSchemas.drawable;
-    if (window.xmlSchemas.manifest.tags.includes(tag)) return window.xmlSchemas.manifest;
-    if (tag === 'resources') {
-        const v = window.xmlSchemas.values;
+    const schemas = self.xmlSchemas || self.GLOBAL?.xmlSchemas;
 
+    if (!schemas) {
+        return { tags: [], allowNamespaces: [], tagAttrs: {} };
+    }
+    const primeiraTag = texto.match(/<\s*([a-zA-Z\-]+)/);
+    if (!primeiraTag) return schemas.layout;
+
+    const tag = primeiraTag[1];
+    if (schemas.drawable?.tags.includes(tag)) return schemas.drawable;
+    if (schemas.manifest?.tags.includes(tag)) return schemas.manifest;
+
+    if (tag === 'resources') {
+        const v = schemas.values;
         return {
             allowNamespaces: [],
             tags: [...v.strings.tags, ...v.colors.tags, ...v.styles.tags],
@@ -77,5 +83,5 @@ function detectarSchema(texto) {
             },
         };
     }
-    return window.xmlSchemas.layout;
+    return schemas.layout;
 }

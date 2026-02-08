@@ -1,17 +1,17 @@
 function getAttrValueType(attrName) {
-    return window.attrValueType[attrName] || null;
+    return GLOBAL.attrValueType[attrName] || null;
 }
 function getAllowedValues(type) {
     if (!type) return null;
     if (type.startsWith('enums.')) {
         const key = type.split('.')[1];
-        return window.xml_values.enums[key] || null;
+        return GLOBAL.xml_values.enums[key] || null;
     }
     if (type.startsWith('refs.')) {
         const key = type.split('.')[1];
-        return window.xml_values.refs[key] || null;
+        return GLOBAL.xml_values.refs[key] || null;
     }
-    return window.xml_values[type] || null;
+    return GLOBAL.xml_values[type] || null;
 }
 function validarValor(attrName, value) {
     const type = getAttrValueType(attrName);
@@ -50,7 +50,7 @@ function validarValor(attrName, value) {
         return { level: 'error', msg: `Boolean inválido em ${attrName}` };
     }
     if (type === 'visibility') {
-        if (window.xml_values.visibility.includes(value)) return null;
+        if (GLOBAL.xml_values.visibility.includes(value)) return null;
         return { level: 'error', msg: `Valor inválido para visibility` };
     }
 
@@ -126,7 +126,7 @@ function validarBlocoXML(texto) {
         }
 
         if (tagAtual) {
-            if (schema === window.xmlSchemas.values.styles) {
+            if (schema === GLOBAL.xmlSchemas.values.styles) {
                 validarStyle(linha, tagAtual).forEach((e) =>
                     erros.push({
                         ...e,
@@ -163,7 +163,6 @@ function validarBlocoXML(texto) {
             tagAtual = null;
         }
     });
-    erros.push(...validarFechamentoTags(texto));
 
     return erros;
 }

@@ -128,6 +128,7 @@ define('base_editor_js', '/app/view/vendor/editor');
         } ?>
     </script>
     <script src="<?= base_editor_js ?>/js/variaveis.js"></script>
+    <script src="<?= base_editor_js ?>/js/variavelGlobal.js"></script>
     <script src="<?= base_editor_js ?>/js/autocomplete/list_tag_xml.js"></script>
     <script src="<?= base_editor_js ?>/js/autocomplete/list_base_java.js"></script>
     <script src="<?= base_editor_js ?>/js/autocomplete/list_lib_java.js"></script>
@@ -143,11 +144,8 @@ define('base_editor_js', '/app/view/vendor/editor');
     <script src="<?= base_editor_js ?>/js/autocomplete/function_java.js"></script>
     <script src="<?= base_editor_js ?>/js/autocomplete/function_xml.js"></script>
     <script src="<?= base_editor_js ?>/js/autocomplete/autocomplet.js"></script>
-    <script src="<?= base_editor_js ?>/js/logErro/verifErroTag.js"></script>
-    <script src="<?= base_editor_js ?>/js/logErro/verifErroAtributo.js"></script>
-    <script src="<?= base_editor_js ?>/js/logErro/verifErroValueXml.js"></script>
-    <script src="<?= base_editor_js ?>/js/logErro/verifErrojava.js"></script>
     <script src="<?= base_editor_js ?>/js/logErro/ControllerErro.js"></script>
+    <script type="module" src="<?= base_editor_js ?>/js/pipeline.js"></script>
 
 </body>
 

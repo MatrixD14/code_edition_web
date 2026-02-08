@@ -36,7 +36,7 @@ function unlockEditor() {
     ui.input.classList.remove('editor-locked');
 }
 
-window.addEventListener('DOMContentLoaded', () => {
+GLOBAL.addEventListener('DOMContentLoaded', () => {
     lockEditor();
 });
 
@@ -50,7 +50,7 @@ ui.projectsList.addEventListener('click', (e) => {
 
     if (typeof sincronizarTerminalComProjeto === 'function') sincronizarTerminalComProjeto(projectPath);
     else {
-        window.terminalCWD = projectPath;
+        GLOBAL.terminalCWD = projectPath;
         console.warn('Terminal ainda não carregado, salvando caminho...');
     }
 
@@ -277,11 +277,11 @@ function selecionarItem(elemento, caminho) {
     if (elemento.classList.contains('file')) {
         state.currentSelectedFolder = caminho.substring(0, caminho.lastIndexOf('/'));
     } else state.currentSelectedFolder = caminho;
-    window.terminalCWD = state.currentSelectedFolder;
+    GLOBAL.terminalCWD = state.currentSelectedFolder;
 }
 
 function sincronizarTerminalComProjeto(path) {
-    window.terminalCWD = path;
+    GLOBAL.terminalCWD = path;
 
     const outputTerm = $('#terminal-output');
     if (outputTerm) {
@@ -371,7 +371,7 @@ async function renameResource() {
     }
 }
 
-window.addEventListener('keydown', (e) => {
+GLOBAL.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.key === 's') {
         e.preventDefault();
         ui.btnSalvar.click();

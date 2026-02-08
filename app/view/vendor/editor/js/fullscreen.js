@@ -21,14 +21,14 @@ function entrarTelaCheia() {
     }
 }
 document.getElementById('btn_fullscreen').addEventListener('click', entrarTelaCheia);
-window.addEventListener('keydown', (e) => {
+GLOBAL.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.key === 'F') {
         entrarTelaCheia();
     }
 });
-if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', () => {
-        let viewHeight = window.visualViewport.height;
+if (GLOBAL.visualViewport) {
+    GLOBAL.visualViewport.addEventListener('resize', () => {
+        let viewHeight = GLOBAL.visualViewport.height;
         document.body.style.height = viewHeight + 'px';
         scrollToBottom();
     });
