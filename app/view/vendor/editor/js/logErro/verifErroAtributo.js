@@ -1,6 +1,16 @@
 function atributoPermitido(tag, attr, schema) {
     if (!schema) return true;
-    const [namespace, nomeAttr] = attr.split(':');
+    if (!attr.includes(':')) {
+        const global = schema.globalattrs || [];
+        if (global.includes(attr)) return true;
+        const tagAttrs = schema.tagAttrs?.[tag];
+        if (!Array.isArray(tagAttrs)) return true;
+        return tagAttrs.includes(attr);
+    }
+
+    const idx = attr.indexOf(':');
+    const namespace = attr.substring(0, idx);
+    const nomeAttr = attr.substring(idx + 1);
     if (!schema.allowNamespaces?.includes(namespace)) return false;
     if (namespace === 'android') {
         const base = schema.baseAttrs?.android || [];
@@ -27,7 +37,7 @@ function extrairConteudoTag(linha) {
 
 function validarTag(linhaTexto, tag, schema) {
     const erros = [];
-    const attrRegex = /([a-zA-Z]+:[a-zA-Z0-9_]+)\s*=\s*"[^"]*"/g;
+    const attrRegex = /([\w:]+)\s*=\s*"([^"]*)"/g;
 
     let match;
 
@@ -36,7 +46,7 @@ function validarTag(linhaTexto, tag, schema) {
 
         if (!atributoPermitido(tag, attr, schema)) {
             erros.push({
-                msg: `Atributo ${attr} não permitido em <${tag}>`,
+                msg: `Atributo ${attr} não permitido <${tag}>`,
             });
         }
     }
@@ -45,21 +55,30 @@ function validarTag(linhaTexto, tag, schema) {
 
 function validarStyle(linhaTexto, tag) {
     const erros = [];
-    const match = linhaTexto.match(/<item\s+name\s*=\s*"([\w]+:[\w_]+)"/);
-    if (!match) return erros;
-    const attrFull = match[1];
-    const [, attr] = attrFull.split(':');
-    if (!GLOBAL.attrValueType[attr]) {
-        erros.push({
-            msg: `Atributo ${attr} inválido em <${tag}>`,
-        });
+    const regex = /<item\s+name\s*=\s*"([\w]+:[\w_]+)"/g;
+
+    let match;
+
+    while ((match = regex.exec(linhaTexto))) {
+        const attrFull = match[1];
+        const idx = attrFull.indexOf(':');
+
+        if (idx === -1) continue;
+
+        const attr = attrFull.substring(idx + 1);
+
+        if (!GLOBAL.attrValueType[attr]) {
+            erros.push({
+                msg: `Atributo ${attr} inválido <${tag}>`,
+            });
+        }
     }
 
     return erros;
 }
 
 function detectarSchema(texto) {
-    const schemas = self.xmlSchemas || self.GLOBAL?.xmlSchemas;
+    const schemas = GLOBAL.xmlSchemas;
 
     if (!schemas) {
         return { tags: [], allowNamespaces: [], tagAttrs: {} };
@@ -68,20 +87,20 @@ function detectarSchema(texto) {
     if (!primeiraTag) return schemas.layout;
 
     const tag = primeiraTag[1];
-    if (schemas.drawable?.tags.includes(tag)) return schemas.drawable;
-    if (schemas.manifest?.tags.includes(tag)) return schemas.manifest;
+    if (schemas.drawable?.tags?.includes(tag)) return schemas.drawable;
+    if (schemas.manifest?.tags?.includes(tag)) return schemas.manifest;
 
     if (tag === 'resources') {
         const v = schemas.values;
+
         return {
-            allowNamespaces: [],
+            type: 'values',
+            allowNamespaces: ['android', 'tools', 'xmlns'],
             tags: [...v.strings.tags, ...v.colors.tags, ...v.styles.tags],
-            tagAttrs: {
-                ...v.strings.tagAttrs,
-                ...v.colors.tagAttrs,
-                ...v.styles.tagAttrs,
-            },
+            tagAttrs: Object.assign({}, v.strings.tagAttrs, v.colors.tagAttrs, v.styles.tagAttrs),
+            baseAttrs: schemas.layout.baseAttrs,
         };
     }
+
     return schemas.layout;
 }

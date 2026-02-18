@@ -3,12 +3,14 @@ function getAttrValueType(attrName) {
 }
 function getAllowedValues(type) {
     if (!type) return null;
+    const key = type.includes('.') ? type.substring(type.indexOf('.') + 1) : type;
+
     if (type.startsWith('enums.')) {
-        const key = type.split('.')[1];
+        // const key = type.split('.')[1];
         return GLOBAL.xml_values.enums[key] || null;
     }
     if (type.startsWith('refs.')) {
-        const key = type.split('.')[1];
+        // const key = type.split('.')[1];
         return GLOBAL.xml_values.refs[key] || null;
     }
     return GLOBAL.xml_values[type] || null;
@@ -18,8 +20,7 @@ function validarValor(attrName, value) {
     if (!type) return null;
     if (type.startsWith('refs.')) {
         const allowed = getAllowedValues(type);
-        if (!allowed) return null;
-        if (value === '') return null;
+        if (!allowed || value === '') return null;
         if (!value.startsWith('@')) return null;
         if (Array.isArray(allowed)) {
             if (allowed.some((prefix) => value.startsWith(prefix))) return null;
@@ -78,89 +79,91 @@ function validarAtributoMainDrawable(linhaTexto) {
 }
 function validadorAtributoStyle(linhaTexto) {
     let erros = [];
+    const regex = /<item\s+name\s*=\s*"android:([\w_]+)"\s*>([^<]*)<\/item>/g;
 
-    const styleRegex = /<item\s+name\s*=\s*"android:([\w_]+)"\s*>([^<]*)<\/item>/;
+    let match;
 
-    const styleMatch = linhaTexto.match(styleRegex);
-
-    if (styleMatch) {
-        const attr = styleMatch[1];
-        const value = styleMatch[2].trim();
+    while ((match = regex.exec(linhaTexto))) {
+        const attr = match[1];
+        const value = match[2].trim();
 
         const erro = validarValor(attr, value);
-
-        if (erro) {
+        if (erro)
             erros.push({
                 attr,
                 value,
                 msg: `[style] ${erro.msg}`,
                 level: erro.level || 'error',
             });
-        }
     }
 
     return erros;
 }
-
 function validarBlocoXML(texto) {
     const erros = [];
+    const stack = [];
     const linhas = texto.split('\n');
     const schema = detectarSchema(texto);
-    let tagAtual = null;
+    let dentroDeComentario = false;
 
     linhas.forEach((linha, idx) => {
-        const openTag = linha.match(/<\s*([A-Za-z0-9_\-]+)/);
+        let limpa = linha.trim();
+        if (!limpa || limpa.startsWith('<?')) return;
+        let posFim = limpa.indexOf('-->');
+        if (dentroDeComentario) {
+            if (posFim !== -1) {
+                dentroDeComentario = false;
+                limpa = limpa.substring(posFim + 3).trim();
+                if (!limpa) return;
+            } else return;
+        }
+        if (limpa.startsWith('<!--')) {
+            if (posFim !== -1) {
+                limpa = limpa.substring(posFim + 3).trim();
+                if (!limpa) return;
+            } else {
+                dentroDeComentario = true;
+                return;
+            }
+        }
 
-        if (openTag) {
-            tagAtual = openTag[1];
+        const openTagMatch = limpa.match(/^<\s*([A-Za-z][\w\-]*)\b/);
+        let tagDestaLinha = null;
+        if (openTagMatch && !limpa.startsWith('</')) {
+            const tag = openTagMatch[1];
 
-            const erroTag = validarTagExiste(tagAtual, schema);
+            const isSelfClosing = limpa.endsWith('/>');
+            tagDestaLinha = tag;
+            if (!isSelfClosing) stack.push(tag);
+
+            const erroTag = validarTagExiste(tag, schema);
 
             if (erroTag) {
                 erros.push({
                     ...erroTag,
                     linha: idx,
-                    tag: tagAtual,
+                    tag,
                 });
             }
-        }
+        } else tagDestaLinha = stack[stack.length - 1];
 
-        if (tagAtual) {
-            if (schema === GLOBAL.xmlSchemas.values.styles) {
-                validarStyle(linha, tagAtual).forEach((e) =>
-                    erros.push({
-                        ...e,
-                        linha: idx,
-                        tag: tagAtual,
-                    }),
-                );
-                validadorAtributoStyle(linha).forEach((e) =>
-                    erros.push({
-                        ...e,
-                        linha: idx,
-                        tag: tagAtual,
-                    }),
-                );
+        if (tagDestaLinha) {
+            validarTag(linha, tagDestaLinha, schema).forEach((e) =>
+                erros.push({ ...e, linha: idx, tag: tagDestaLinha }),
+            );
+            if (schema.type === 'values') {
+                validarStyle(linha, tagDestaLinha).forEach((e) => erros.push({ ...e, linha: idx, tag: tagDestaLinha }));
+
+                validadorAtributoStyle(linha).forEach((e) => erros.push({ ...e, linha: idx, tag: tagDestaLinha }));
             } else {
-                validarTag(linha, tagAtual, schema).forEach((e) =>
-                    erros.push({
-                        ...e,
-                        linha: idx,
-                        tag: tagAtual,
-                    }),
-                );
-                validarAtributoMainDrawable(linha).forEach((e) =>
-                    erros.push({
-                        ...e,
-                        linha: idx,
-                        tag: tagAtual,
-                    }),
-                );
+                validarAtributoMainDrawable(linha).forEach((e) => erros.push({ ...e, linha: idx, tag: tagDestaLinha }));
             }
         }
+        const closeTag = limpa.match(/^<\/\s*([A-Za-z][\w\-]*)>/);
 
-        if (tagAtual && (linha.includes('/>') || linha.includes(`</${tagAtual}>`))) {
-            tagAtual = null;
+        if (closeTag) {
+            const closing = closeTag[1];
+            if (stack.length > 0 && stack[stack.length - 1] === closing) stack.pop();
         }
     });
 

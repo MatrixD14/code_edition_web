@@ -1,6 +1,7 @@
 GLOBAL.xml_tags = {
     layout: {
-        namespaces: ['android', 'tools', 'xmlns'],
+        global: ['style'],
+        namespaces: ['android', 'tools', 'xmlns', 'style'],
         tags: [
             'LinearLayout',
             'FrameLayout',
@@ -181,6 +182,7 @@ GLOBAL.xml_tags = {
         },
     },
     manifest: {
+        global: ['package'],
         namespaces: ['android', 'xmlns'],
         tags: [
             'manifest',
@@ -311,6 +313,7 @@ GLOBAL.attrValueType = {
 
 GLOBAL.xmlSchemas = {
     layout: {
+        globalattrs: GLOBAL.xml_tags.layout.global,
         allowNamespaces: GLOBAL.xml_tags.layout.namespaces,
         tags: GLOBAL.xml_tags.layout.tags,
         baseAttrs: GLOBAL.xml_tags.layout.baseAttrs,
@@ -356,6 +359,7 @@ GLOBAL.xmlSchemas = {
     },
 
     manifest: {
+        globalattrs: GLOBAL.xml_tags.manifest.global,
         allowNamespaces: GLOBAL.xml_tags.manifest.namespaces,
         tags: GLOBAL.xml_tags.manifest.tags,
         tagAttrs: GLOBAL.xml_tags.manifest.attrs,

@@ -7,7 +7,7 @@ const worker = Array.from(
     { length: WORKER_COUNT },
     () => new Worker('/app/view/vendor/editor/js/logErro/validator-worker.js'),
 );
-
+let workerAtual = 0;
 let delayValidacao;
 let linhaAtiva = null;
 let linhasComErro = new Set();
@@ -105,23 +105,16 @@ function validarCodigo(force = false) {
     limparErrosVisuais();
     const isJava = (window.editor?.dataset?.currentFile || '').endsWith('.java') || texto.includes('public class');
 
-    const meio = Math.ceil(linhas.length / worker.length);
+    const workerSelecionado = worker[workerAtual];
 
-    limparErrosVisuais();
-
-    worker.forEach((worker, i) => {
-        const inicio = i * meio;
-        const fim = inicio + meio;
-
-        const bloco = linhas.slice(inicio, fim);
-
-        worker.postMessage({
-            texto: bloco.join('\n'),
-            isJava,
-            offset: inicio,
-        });
+    workerSelecionado.postMessage({
+        texto: texto,
+        isJava,
+        offset: 0,
     });
+    workerAtual = (workerAtual + 1) % worker.length;
 }
+
 window.validarCodigo = validarCodigo;
 
 lineNumbers.addEventListener('click', (e) => {

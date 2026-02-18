@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pendingChunks--;
             if (pendingChunks === 0)
                 requestAnimationFrame(() => {
-                    output.innerHTML = htmlChunks.join('');
+                    output.innerHTML = htmlChunks.join('\n');
                 });
         };
     });
