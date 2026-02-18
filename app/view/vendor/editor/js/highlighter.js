@@ -5,17 +5,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const output = $('#highlight-content');
     const layer = $('#highlight-layer');
     const lineNumbers = $('#line-numbers');
-    const WORKER_COUNT = Math.min(2, navigator.hardwareConcurrency || 2);
+    const worker = new Worker('/app/view/vendor/editor/js/highlighter-worker.js');
 
-    const workers = Array.from(
-        { length: WORKER_COUNT },
-        () => new Worker('/app/view/vendor/editor/js/highlighter-worker.js'),
-    );
-
-    let timeout,
-        lastMsgId = 0;
-    let pendingChunks = 0;
-    let htmlChunks = [];
+    let lastMsgId = 0;
 
     if (!input || !output) return;
     const extensionBloqueio = new Set([
@@ -53,18 +45,12 @@ document.addEventListener('DOMContentLoaded', () => {
         'log',
         'md',
     ]);
-    workers.forEach((worker) => {
-        worker.onmessage = function (e) {
-            const { index, html, msgId } = e.data;
-            if (e.data.msgId !== lastMsgId) return;
-            htmlChunks[index] = html;
-            pendingChunks--;
-            if (pendingChunks === 0)
-                requestAnimationFrame(() => {
-                    output.innerHTML = htmlChunks.join('\n');
-                });
-        };
-    });
+    worker.onmessage = function (e) {
+        if (e.data.msgId !== lastMsgId) return;
+        requestAnimationFrame(() => {
+            output.innerHTML = e.data.html;
+        });
+    };
     function getExtension(fileName) {
         if (!fileName) return '';
         const lastDot = fileName.lastIndexOf('.');
@@ -83,25 +69,13 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const linhas = rawValue.split('\n');
-        const chunkSize = Math.ceil(linhas.length / workers.length);
-
-        pendingChunks = workers.length;
-        htmlChunks = [];
-
         const isXML =
             ['html', 'xml', 'svg', 'manifest'].includes(extension) || fileName.endsWith('AndroidManifest.xml');
 
-        workers.forEach((worker, i) => {
-            const start = i * chunkSize;
-            const end = start + chunkSize;
-
-            worker.postMessage({
-                code: String(linhas.slice(start, end).join('\n')),
-                isXML,
-                index: i,
-                msgId,
-            });
+        worker.postMessage({
+            code: rawValue,
+            isXML,
+            msgId,
         });
     }
 
@@ -110,11 +84,6 @@ document.addEventListener('DOMContentLoaded', () => {
         sendToWorker();
     }
     window.syncEditorInicial = syncEditorInicial;
-    // input.addEventListener('input', () => {
-    //     clearTimeout(timeout);
-    //     let delay = input.value.length > 25000 ? 200 : 50;
-    //     timeout = setTimeout(syncEditorInicial, delay);
-    // });
 
     function updateLineNumbers(text) {
         const total = text.split('\n').length;

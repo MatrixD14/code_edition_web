@@ -46,34 +46,35 @@ function validarTag(linhaTexto, tag, schema) {
 
         if (!atributoPermitido(tag, attr, schema)) {
             erros.push({
-                msg: `Atributo ${attr} não permitido <${tag}>`,
+                msg: `Atributo "${attr}" não existe `,
             });
         }
     }
     return erros;
 }
 
-function validarStyle(linhaTexto, tag) {
+function validarStyle(linhaTexto) {
     const erros = [];
-    const regex = /<item\s+name\s*=\s*"([\w]+:[\w_]+)"/g;
-
+    const regex = /<item\s+name\s*=\s*"([^"]+)"\s*>(.*?)<\/item>/g;
     let match;
-
     while ((match = regex.exec(linhaTexto))) {
         const attrFull = match[1];
-        const idx = attrFull.indexOf(':');
-
-        if (idx === -1) continue;
-
-        const attr = attrFull.substring(idx + 1);
-
+        const value = match[2].trim();
+        if (!attrFull.startsWith('android:')) {
+            erros.push({
+                msg: `tem que iniciar com "android:" `,
+            });
+            continue;
+        }
+        const attr = attrFull.substring(8);
         if (!GLOBAL.attrValueType[attr]) {
             erros.push({
-                msg: `Atributo ${attr} inválido <${tag}>`,
+                msg: `Atributo "${attr}" inválido`,
             });
         }
+        const erroValor = validarValor(attr, value);
+        if (erroValor) erros.push(erroValor);
     }
-
     return erros;
 }
 

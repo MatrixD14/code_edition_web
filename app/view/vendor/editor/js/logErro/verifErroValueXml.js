@@ -6,11 +6,9 @@ function getAllowedValues(type) {
     const key = type.includes('.') ? type.substring(type.indexOf('.') + 1) : type;
 
     if (type.startsWith('enums.')) {
-        // const key = type.split('.')[1];
         return GLOBAL.xml_values.enums[key] || null;
     }
     if (type.startsWith('refs.')) {
-        // const key = type.split('.')[1];
         return GLOBAL.xml_values.refs[key] || null;
     }
     return GLOBAL.xml_values[type] || null;
@@ -24,31 +22,31 @@ function validarValor(attrName, value) {
         if (!value.startsWith('@')) return null;
         if (Array.isArray(allowed)) {
             if (allowed.some((prefix) => value.startsWith(prefix))) return null;
-            return { level: 'error', msg: `Referência inválida para ${attrName}` };
+            return { level: 'error', msg: `Referência inválida para "${attrName}"` };
         }
         if (typeof allowed === 'string') {
             if (value.startsWith(allowed)) return null;
-            return { level: 'error', msg: `Esperado ${allowed} em ${attrName}` };
+            return { level: 'error', msg: `Esperado "${allowed}" na tag "${attrName}"` };
         }
     }
     if (type.startsWith('enums.')) {
         const allowed = getAllowedValues(type);
         if (allowed && allowed.includes(value)) return null;
 
-        return { level: 'error', msg: `Valor inválido para ${attrName}` };
+        return { level: 'error', msg: `Valor inválido para "${attrName}"` };
     }
     if (type === 'dimension') {
         if (value === 'wrap_content' || value === 'match_parent' || /^[0-9]+(\.[0-9]+)?(dp|px)$/.test(value))
             return null;
-        return { level: 'error', msg: `Valor "${value}" inválido para ${attrName}` };
+        return { level: 'error', msg: `Valor "${value}" inválido para "${attrName}"` };
     }
     if (type === 'size') {
         if (/^[0-9]+(\.[0-9]+)?sp$/.test(value)) return null;
-        return { level: 'error', msg: `Valor "${value}" inválido para ${attrName}` };
+        return { level: 'error', msg: `Valor "${value}" inválido para "${attrName}"` };
     }
     if (type === 'boolean') {
         if (['true', 'false'].includes(value)) return null;
-        return { level: 'error', msg: `Boolean inválido em ${attrName}` };
+        return { level: 'error', msg: `Boolean inválido em "${attrName}"` };
     }
     if (type === 'visibility') {
         if (GLOBAL.xml_values.visibility.includes(value)) return null;
@@ -77,34 +75,13 @@ function validarAtributoMainDrawable(linhaTexto) {
     }
     return erros;
 }
-function validadorAtributoStyle(linhaTexto) {
-    let erros = [];
-    const regex = /<item\s+name\s*=\s*"android:([\w_]+)"\s*>([^<]*)<\/item>/g;
-
-    let match;
-
-    while ((match = regex.exec(linhaTexto))) {
-        const attr = match[1];
-        const value = match[2].trim();
-
-        const erro = validarValor(attr, value);
-        if (erro)
-            erros.push({
-                attr,
-                value,
-                msg: `[style] ${erro.msg}`,
-                level: erro.level || 'error',
-            });
-    }
-
-    return erros;
-}
 function validarBlocoXML(texto) {
     const erros = [];
     const stack = [];
     const linhas = texto.split('\n');
     const schema = detectarSchema(texto);
     let dentroDeComentario = false;
+    let androidNamespaceDeclarado = false;
 
     linhas.forEach((linha, idx) => {
         let limpa = linha.trim();
@@ -126,6 +103,7 @@ function validarBlocoXML(texto) {
                 return;
             }
         }
+        if (limpa.includes('xmlns:android=')) androidNamespaceDeclarado = true;
 
         const openTagMatch = limpa.match(/^<\s*([A-Za-z][\w\-]*)\b/);
         let tagDestaLinha = null;
@@ -151,10 +129,9 @@ function validarBlocoXML(texto) {
             validarTag(linha, tagDestaLinha, schema).forEach((e) =>
                 erros.push({ ...e, linha: idx, tag: tagDestaLinha }),
             );
-            if (schema.type === 'values') {
-                validarStyle(linha, tagDestaLinha).forEach((e) => erros.push({ ...e, linha: idx, tag: tagDestaLinha }));
 
-                validadorAtributoStyle(linha).forEach((e) => erros.push({ ...e, linha: idx, tag: tagDestaLinha }));
+            if (schema.type === 'values') {
+                validarStyle(linha).forEach((e) => erros.push({ ...e, linha: idx, tag: tagDestaLinha }));
             } else {
                 validarAtributoMainDrawable(linha).forEach((e) => erros.push({ ...e, linha: idx, tag: tagDestaLinha }));
             }
