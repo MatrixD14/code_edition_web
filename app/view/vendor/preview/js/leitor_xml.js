@@ -89,10 +89,15 @@ function obterValor(attr) {
     let valor = attr;
     if (attr.startsWith('@color/')) valor = colorsCache[attr] || '#000000';
     if (attr.startsWith('@string/')) return stringsCache[attr] || attr;
-    if (valor.startsWith('#') && valor.length === 9) {
-        let a = valor.substring(1, 3);
-        let rgb = valor.substring(3);
-        return '#' + rgb + a;
+    if (/^#[0-9a-fA-F]{4}$/.test(valor)) {
+        console.warn('Formato #ARGB não é suportado no Android:', valor);
+        return '#000000';
+    }
+
+    if (/^#[0-9a-fA-F]{8}$/.test(valor)) {
+        const aa = valor.substring(1, 3);
+        const rrggbb = valor.substring(3);
+        return `#${rrggbb}${aa}`;
     }
     return valor;
 }

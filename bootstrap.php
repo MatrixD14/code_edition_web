@@ -18,20 +18,36 @@ if (!$htdoc) {
 }
 define('HTDOC', $htdoc);
 
-//fontsize do text
-$fontsize = Env::get("fontSize", "size");
-$fontsize = filter_var($fontsize, FILTER_VALIDATE_INT, ["options" => ["default" => 14]]);
-
-//ativa autocomple
-$ativaAutocomple = Env::get("autoComple", "autocomple");
-$ativaAutocomple = filter_var($ativaAutocomple, FILTER_VALIDATE_BOOLEAN);
-
 //caminha do Android/Sdk
 $sdkPath = Env::get('android', 'sdk_path');
 if (!$sdkPath) {
     echo "Digite o caminho do Android SDK no ./.editorConf : </br></br>[android]</br>sdk_path=?";
     throw new RuntimeException("Digite o caminho do Android SDK no ./.editorConf : </br></br>[android]</br>sdk_path=?");
 }
+
+// CONFIGURAÇÕES DO EDITOR
+
+//fontsize do text
+$fontsize = Env::get("editor", "fontSize");
+$fontsize = filter_var($fontsize, FILTER_VALIDATE_INT, ["options" => ["default" => 14]]);
+
+//ativa autocomple
+$ativaAutocomple = Env::get("editor", "autocomple");
+$ativaAutocomple = filter_var($ativaAutocomple, FILTER_VALIDATE_BOOLEAN);
+
+$tabSize = Env::get('editor', 'tabSize');
+$tabSize = filter_var(
+    $tabSize,
+    FILTER_VALIDATE_INT,
+    ["options" => ["default" => 1]]
+);
+
+$autoIndent = Env::get('editor', 'autoIndent');
+$autoIndent = filter_var(
+    $autoIndent,
+    FILTER_VALIDATE_BOOLEAN
+);
+///
 //login
 require_once __DIR__ . '/app/controller/login/auth_login.php';
 require_once __DIR__ . '/app/model/login.php';

@@ -26,6 +26,8 @@ const config = {
     painelConfig: $('.painel-config'),
     closeConfig: $('#close_config'),
     painel_tag: $('#painel_tag'),
+    auto_indent: $('#auto_indent'),
+    tab_Size: $('#tabSize'),
 };
 
 function restEditor() {

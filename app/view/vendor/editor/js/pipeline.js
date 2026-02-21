@@ -18,5 +18,8 @@ function initEditorPipeline(input) {
 
 document.addEventListener('DOMContentLoaded', () => {
     const input = document.getElementById('code-input');
-    if (input) initEditorPipeline(input);
+    if (input) {
+        // atalhosEditor(input);
+        initEditorPipeline(input);
+    }
 });

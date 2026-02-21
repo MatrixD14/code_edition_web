@@ -7,8 +7,8 @@ sdk_path=/home/matrix/Android/Sdk/
 [path_htdoc]
 HTDOC=/htdoc
 
-[fontSize]
-size=16
-
-[autoComple]
+[editor]
+fontSize=16
+tabSize=4
+autoIndent=true
 autocomple=true

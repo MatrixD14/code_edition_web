@@ -59,8 +59,14 @@ define('base_editor_js', '/app/view/vendor/editor');
             <label for="font_size">Tamanho da fonte:</label>
             <input type="number" id="font_size" name="font_size" min="10" max="35">
             <br><br>
+            <label for="tabSize">Tamanho do pulo do tab:</label>
+            <input type="number" id="tabSize" name="tabSize" min="1" max="99">
+            <br><br>
             <label for="painel_tag">Painel de tag:</label>
             <input type="checkbox" id="painel_tag" name="painel_tag">
+            <br><br>
+            <label for="auto_indent">Auto Indent:</label>
+            <input type="checkbox" id="auto_indent" name="auto_indent">
             <br><br>
             <button id="close_config" class>Enter</button>
         </div>
@@ -119,7 +125,9 @@ define('base_editor_js', '/app/view/vendor/editor');
         window.BASE_URL = '/app/';
         window.EDITOR_CONFIG = {
             autocomplete: <?= json_encode($ativaAutocomple) ?>,
-            fontsizevalue: <?= json_encode($fontsize) ?>
+            fontsizevalue: <?= json_encode($fontsize) ?>,
+            tabSize: <?= json_encode($tabSize) ?>,
+            autoIndent: <?= json_decode($autoIndent) ? 'true' : 'false' ?>,
         };
         <?php if (isset($_SESSION["list_java"])) { ?>
             alert(<?= json_encode($_SESSION["list_java"]) ?>);
@@ -145,8 +153,8 @@ define('base_editor_js', '/app/view/vendor/editor');
     <script src="<?= base_editor_js ?>/js/autocomplete/function_xml.js"></script>
     <script src="<?= base_editor_js ?>/js/autocomplete/autocomplet.js"></script>
     <script src="<?= base_editor_js ?>/js/logErro/ControllerErro.js"></script>
+    <script src="<?= base_editor_js ?>/js/commadatalho.js"></script>
     <script type="module" src="<?= base_editor_js ?>/js/pipeline.js"></script>
-
 </body>
 
 </html>
