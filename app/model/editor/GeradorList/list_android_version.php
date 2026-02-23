@@ -1,5 +1,5 @@
 <?php
-require_once '../../../bootstrap.php';
+require_once '../../../../bootstrap.php';
 header("Content-Type: application/json");
 $platformDir = $sdkPath . DIRECTORY_SEPARATOR . "platforms";
 if (!is_dir($platformDir)) {

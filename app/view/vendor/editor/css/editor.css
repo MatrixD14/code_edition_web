@@ -156,7 +156,8 @@ body {
     padding: 10px;
 }
 
-.mune_select_file_dir a {
+.mune_select_file_dir a,
+.btn-delete-project {
     padding: 10px;
     border-left: 1px solid #555;
     color: #fff;

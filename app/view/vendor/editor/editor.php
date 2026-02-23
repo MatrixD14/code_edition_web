@@ -140,21 +140,25 @@ define('base_editor_js', '/app/view/vendor/editor');
     <script src="<?= base_editor_js ?>/js/autocomplete/list_tag_xml.js"></script>
     <script src="<?= base_editor_js ?>/js/autocomplete/list_base_java.js"></script>
     <script src="<?= base_editor_js ?>/js/autocomplete/list_lib_java.js"></script>
-    <script src="<?= base_editor_js ?>/js/conf_system.js"></script>
-    <script src="<?= base_editor_js ?>/js/highlighter.js"></script>
-    <script src="<?= base_editor_js ?>/js/list_path_editor.js"></script>
-    <script src="<?= base_editor_js ?>/js/upload_path_editor.js"></script>
+    <script src="<?= base_editor_js ?>/js/configEditor/conf_system.js"></script>
+    <script src="<?= base_editor_js ?>/js/editorText/highlighter.js"></script>
+    <script src="<?= base_editor_js ?>/js/editorText/state.js"></script>
+    <script src="<?= base_editor_js ?>/js/editorText/project_manage.js"></script>
+    <script src="<?= base_editor_js ?>/js/editorText/file_operations.js"></script>
+    <script src="<?= base_editor_js ?>/js/editorText/UI_Events.js"></script>
+    <script src="<?= base_editor_js ?>/js/editorText/list_path_editor.js"></script>
+    <script src="<?= base_editor_js ?>/js/configEditor/upload_path_editor.js"></script>
     <script src="<?= base_editor_js ?>/js/autocomplete/list_java_lib.js"></script>
-    <script src="<?= base_editor_js ?>/js/terminal.js"></script>
-    <script src="<?= base_editor_js ?>/js/fullscreen.js"></script>
+    <script src="<?= base_editor_js ?>/js/editorText/terminal.js"></script>
+    <script src="<?= base_editor_js ?>/js/configEditor/fullscreen.js"></script>
     <script src="<?= base_editor_js ?>/js/preview/preview.js"></script>
     <script src="/app/view/vendor/preview/js/variaveis.js"></script>
     <script src="<?= base_editor_js ?>/js/autocomplete/function_java.js"></script>
     <script src="<?= base_editor_js ?>/js/autocomplete/function_xml.js"></script>
     <script src="<?= base_editor_js ?>/js/autocomplete/autocomplet.js"></script>
     <script src="<?= base_editor_js ?>/js/logErro/ControllerErro.js"></script>
-    <script src="<?= base_editor_js ?>/js/commadatalho.js"></script>
-    <script type="module" src="<?= base_editor_js ?>/js/pipeline.js"></script>
+    <script src="<?= base_editor_js ?>/js/configEditor/commadatalho.js"></script>
+    <script type="module" src="<?= base_editor_js ?>/js/configEditor/pipeline.js"></script>
 </body>
 
 </html>

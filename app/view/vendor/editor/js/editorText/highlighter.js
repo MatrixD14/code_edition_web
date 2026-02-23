@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const output = $('#highlight-content');
     const layer = $('#highlight-layer');
     const lineNumbers = $('#line-numbers');
-    const worker = new Worker('/app/view/vendor/editor/js/highlighter-worker.js');
+    const worker = new Worker('/app/view/vendor/editor/js/editorText/highlighter-worker.js');
 
     let lastMsgId = 0;
 

@@ -1,5 +1,5 @@
 async function pickAndroidVersion() {
-    const res = await fetch(`${window.BASE_URL}model/editor/list_android_version.php`);
+    const res = await fetch(`${window.BASE_URL}model/editor/GeradorList/list_android_version.php`);
     const versions = await res.json();
 
     const options = {};
@@ -13,7 +13,9 @@ async function pickAndroidVersion() {
     btn.style.opacity = '0.5';
 
     try {
-        const response = await fetch(`${window.BASE_URL}model/editor/lista_java.php?version=${version}`);
+        const response = await fetch(
+            `${window.BASE_URL}model/editor/GeradorList/contrillerlList.php?version=${version}`,
+        );
         const text = await response.text();
         if (text.trim() === '') alert('O servidor não retornou nenhuma mensagem. Verifique os logs do PHP.');
         else alert(text);
