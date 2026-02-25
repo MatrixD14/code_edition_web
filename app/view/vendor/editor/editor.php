@@ -137,6 +137,7 @@ define('base_editor_js', '/app/view/vendor/editor');
     </script>
     <script src="<?= base_editor_js ?>/js/variaveis.js"></script>
     <script src="<?= base_editor_js ?>/js/variavelGlobal.js"></script>
+    <script src="<?= base_editor_js ?>/js/autocomplete/list_xml.js"></script>
     <script src="<?= base_editor_js ?>/js/autocomplete/list_tag_xml.js"></script>
     <script src="<?= base_editor_js ?>/js/autocomplete/list_base_java.js"></script>
     <script src="<?= base_editor_js ?>/js/autocomplete/list_lib_java.js"></script>

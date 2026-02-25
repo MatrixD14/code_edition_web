@@ -1,5 +1,6 @@
 importScripts(
     '../variavelGlobal.js',
+    '../autocomplete/list_xml.js',
     '../autocomplete/list_tag_xml.js',
     './verifErroJava.js',
     './verifErroAtributo.js',

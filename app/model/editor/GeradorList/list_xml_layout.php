@@ -1,167 +1,136 @@
 <?php
-
 $widgetClasses = [];
 $tagAttrsAuto = ["View" => [], "ViewGroup" => []];
 $manifestAttrsAuto = [];
 $drawableAttrsAuto = [];
 $GLOBAL_attrValueType = [];
 $GLOBAL_xml_values_enums = [];
-
+$tempStyleables = [];
 
 $attrsPath = $platforms . '/data/res/values/attrs.xml';
 
 if (file_exists($attrsPath)) {
+    $xml = @simplexml_load_file($attrsPath);
+    if ($xml) {
+        foreach ($xml->xpath('//attr') as $attr) {
+            $name = (string)$attr['name'];
+            if (!$name || str_starts_with($name, '__')) continue;
 
-    $xml = simplexml_load_file($attrsPath);
-
-    foreach ($xml->xpath('//attr') as $attr) {
-
-        $name = (string) $attr['name'];
-        if (!$name || str_starts_with($name, '__')) continue;
-
-        // Detecta FLAGS
-        if ($attr->flag->count() > 0) {
-
-            $values = [];
-            foreach ($attr->flag as $flag) {
-                $values[] = (string) $flag['name'];
+            if ($attr->flag->count() > 0 || $attr->enum->count() > 0) {
+                $values = [];
+                $nodes = $attr->flag->count() > 0 ? $attr->flag : $attr->enum;
+                foreach ($nodes as $node) {
+                    $values[] = (string)$node['name'];
+                }
+                $GLOBAL_xml_values_enums[$name] = $values;
+                $GLOBAL_attrValueType[$name] = "enums.$name";
+            } else {
+                $formatAttr = (string)$attr['format'];
+                $formats = $formatAttr !== '' ? explode('|', $formatAttr) : [];
+                if (in_array('boolean', $formats)) $GLOBAL_attrValueType[$name] = "boolean";
+                elseif (in_array('dimension', $formats)) $GLOBAL_attrValueType[$name] = "dimension";
+                elseif (in_array('color', $formats)) $GLOBAL_attrValueType[$name] = "refs.color";
+                elseif (in_array('reference', $formats)) $GLOBAL_attrValueType[$name] = "refs.id_ref";
             }
-
-            $GLOBAL_xml_values_enums[$name] = $values;
-            $GLOBAL_attrValueType[$name] = "enums.$name";
-            continue;
         }
 
-        // Detecta ENUM
-        if ($attr->enum->count() > 0) {
-
-            $values = [];
-            foreach ($attr->enum as $enum) {
-                $values[] = (string) $enum['name'];
+        foreach ($xml->{'declare-styleable'} as $styleable) {
+            $styleName = (string)$styleable['name'];
+            $attrs = [];
+            foreach ($styleable->attr as $a) {
+                if ($a['name']) $attrs[] = (string)$a['name'];
             }
-
-            $GLOBAL_xml_values_enums[$name] = $values;
-            $GLOBAL_attrValueType[$name] = "enums.$name";
-            continue;
-        }
-
-        // Se não tem enum/flag → usa format
-        $formatAttr = (string) $attr['format'];
-        $formats = $formatAttr !== '' ? explode('|', $formatAttr) : [];
-
-        if (in_array('boolean', $formats)) {
-            $GLOBAL_attrValueType[$name] = "boolean";
-        } elseif (in_array('dimension', $formats)) {
-            $GLOBAL_attrValueType[$name] = "dimension";
-        } elseif (in_array('color', $formats)) {
-            $GLOBAL_attrValueType[$name] = "refs.color";
-        } elseif (in_array('reference', $formats)) {
-            $GLOBAL_attrValueType[$name] = "refs.id_ref";
-        }
-    }
-
-    $tempStyleables = [];
-
-    foreach ($xml->{'declare-styleable'} as $styleable) {
-
-        $styleName = (string) $styleable['name'];
-        $attrs = [];
-
-        foreach ($styleable->attr as $a) {
-            $attrName = (string) $a['name'];
-            if ($attrName) $attrs[] = $attrName;
-        }
-
-        $tempStyleables[$styleName] = $attrs;
-
-        foreach ($tempStyleables as $name => $attrs) {
-
-            // Ignorar styleables que NÃO são views
+            $tempStyleables[$styleName] = $attrs;
             if (
-                str_contains($name, '_') ||                     // Layout params
-                str_starts_with($name, 'Drawable') ||           // Drawable
-                str_starts_with($name, 'TextAppearance') ||     // Aparência
-                str_starts_with($name, 'AndroidManifest') ||    // Manifest
-                str_starts_with($name, 'Animation') ||
-                str_starts_with($name, 'Animator')
+                ctype_upper($styleName[0]) &&
+                !str_contains($styleName, '_') &&
+                !str_contains($styleName, 'Drawable') &&
+                !str_contains($styleName, 'Vector') &&
+                !str_contains($styleName, 'Animation') &&
+                !str_contains($styleName, 'State') &&
+                !in_array($styleName, ['Window', 'Theme', 'TextAppearance'])
             ) {
-                continue;
-            }
-
-            // Começa com letra maiúscula = provável View real
-            if (ctype_upper($name[0])) {
-                $widgetClasses[] = $name;
+                $widgetClasses[] = $styleName;
             }
         }
-
-        $widgetClasses = array_unique($widgetClasses);
-        sort($widgetClasses);
     }
 
     $viewBase = $tempStyleables["View"] ?? [];
-    $viewGroupBase = $tempStyleables["ViewGroup"] ?? [];
 
     $layoutBase = array_unique(array_merge(
         $tempStyleables["ViewGroup_Layout"] ?? [],
-        $tempStyleables["ViewGroup_MarginLayout"] ?? []
+        $tempStyleables["ViewGroup_MarginLayout"] ?? [],
+        $tempStyleables["RelativeLayout_Layout"] ?? []
     ));
-
-    foreach ($widgetClasses as $tag) {
-
-        $specificAttrs = $tempStyleables[$tag] ?? [];
-
-        // Remove attrs globais herdados
-        $specificAttrs = array_diff($specificAttrs, $viewBase);
-        $specificAttrs = array_diff($specificAttrs, $layoutBase);
-
-        $tagAttrsAuto[$tag] = array_values(array_unique($specificAttrs));
-    }
-
-    // Define base View
-    $tagAttrsAuto["View"] = [];
-
-    // ViewGroup remove o que já é de View
-    $tagAttrsAuto["ViewGroup"] = array_values(
-        array_diff($viewGroupBase, $viewBase)
-    );
-
-    foreach ($tempStyleables as $name => $attrs) {
-
-        // Manifest
-        if (str_starts_with($name, 'AndroidManifest')) {
-
-            $clean = str_replace('AndroidManifest', '', $name);
-
-            $map = [
-                'UsesPermission' => 'uses-permission',
-                'UsesSdk' => 'uses-sdk',
-                'IntentFilter' => 'intent-filter',
-                'Application' => 'application',
-                'Activity' => 'activity'
-            ];
-
-            $tagName = $map[$clean] ?? strtolower($clean);
-            $manifestAttrsAuto[$tagName] = $attrs;
-        }
-
-        // Drawable
-        $dMap = [
-            'GradientDrawable' => 'gradient',
-            'ShapeDrawable' => 'shape',
-            'StateListDrawable' => 'selector',
-            'LayerDrawable' => 'layer-list',
-            'DrawableCorners' => 'corners',
-            'DrawablePadding' => 'padding',
-            'DrawableSize' => 'size',
-            'DrawableSolid' => 'solid',
-            'DrawableStroke' => 'stroke',
-            'StateListDrawableItem' => 'item',
-            'LayerDrawableItem' => 'item'
-        ];
-
-        if (isset($dMap[$name])) {
-            $drawableAttrsAuto[$dMap[$name]] =
-                array_unique(array_merge($drawableAttrsAuto[$dMap[$name]] ?? [], $attrs));
+    $heranca_simples = [
+        "TextView" => ["Button", "EditText", "CheckBox", "RadioButton", "Switch", "CheckedTextView", "ToggleButton", "Chronometer"],
+        "ImageView" => ["ImageButton", "QuickContactBadge"],
+        "ProgressBar" => ["SeekBar", "RatingBar"],
+        "AbsListView" => ["ListView", "GridView"],
+        "ViewAnimator" => ["ViewFlipper", "ViewSwitcher", "ImageSwitcher", "TextSwitcher"]
+    ];
+    $mapaPaiLayout = [];
+    foreach ($heranca_simples as $pai => $filhos) {
+        foreach ($filhos as $filho) {
+            $mapaPaiLayout[$filho] = $pai;
         }
     }
+
+    foreach (array_unique($widgetClasses) as $tag) {
+        $attrs = $tempStyleables[$tag] ?? [];
+        $attrs = array_diff($attrs, $viewBase, $layoutBase);
+        $attrsLimpos = array_filter($attrs, function ($attr) {
+            return !str_starts_with($attr, '__removed') &&
+                !str_contains($attr, 'nextCluster') &&
+                !str_starts_with($attr, 'focusedBy');
+        });
+        $tagAttrsAuto[$tag] = array_values(array_unique($attrsLimpos));
+    }
+    $layoutEntries = [];
+    foreach ($tagAttrsAuto as $tag => $attrs) {
+        if (isset($mapaPaiLayout[$tag])) {
+            $pai = $mapaPaiLayout[$tag];
+            $especificos = array_diff($attrs, $tagAttrsAuto[$pai] ?? []);
+            if (empty($especificos)) {
+                $layoutEntries[] = "$tag: [...GLOBAL.xml_tags.layout.tagAttrs.$pai]";
+            } else {
+                $especificosJson = trim(json_encode(array_values($especificos)), "[]");
+                $layoutEntries[] = "$tag: [...GLOBAL.xml_tags.layout.tagAttrs.$pai,$especificosJson]";
+            }
+        } else {
+            $layoutEntries[] = "$tag: " . json_encode($tagAttrsAuto[$tag]);
+        }
+    }
+    $layoutTagAttrsJS = "{\n            " . implode(",\n            ", $layoutEntries) . "\n        }";
+
+    // Drawable
+    $dMap = [
+        'GradientDrawable' => 'shape',
+        'ShapeDrawable' => 'shape',
+        'GradientDrawableSolid' => 'solid',
+        'GradientDrawableStroke' => 'stroke',
+        'GradientDrawableSize'  => 'size',
+        'GradientDrawableGradient' => 'gradient',
+        'StateListDrawable' => 'selector',
+        'LayerDrawable' => 'layer-list',
+        'DrawableCorners' => 'corners',
+        'DrawablePadding' => 'padding',
+        'StateListDrawableItem' => 'item',
+        'LayerDrawableItem' => 'item'
+    ];
+    foreach ($dMap as $style => $tag) {
+        if (isset($tempStyleables[$style])) {
+            $drawableAttrsAuto[$tag] = array_values(array_unique(array_merge($drawableAttrsAuto[$tag] ?? [], $tempStyleables[$style])));
+        }
+    }
+    $finalBaseRaw = array_unique(array_merge($viewBase, $layoutBase));
+
+    $finalBase = array_values(array_filter($finalBaseRaw, function ($attr) {
+        $blackList = ['__removed', 'nextCluster', 'keyboardNavigation'];
+
+        foreach ($blackList as $word) {
+            if (str_contains($attr, $word)) return false;
+        }
+        return true;
+    }));
 }

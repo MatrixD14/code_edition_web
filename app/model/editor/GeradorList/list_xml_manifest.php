@@ -97,38 +97,42 @@ if (file_exists($manifestAttrsPath)) {
             'parent' => $parent ?: null
         ];
     }
-    $manifestAttrsAuto = [];
+    // $manifestAttrsAuto = [];
+    $manifestEntries = [];
+    $map = [
+        'Manifest' => 'manifest',
+        'Application' => 'application',
+        'Activity' => 'activity',
+        'Service' => 'service',
+        'Receiver' => 'receiver',
+        'Provider' => 'provider',
+        'UsesPermission' => 'uses-permission',
+        'UsesSdk' => 'uses-sdk',
+        'IntentFilter' => 'intent-filter',
+        'Permission' => 'permission',
+        'Manifest' => 'manifest'
+    ];
+    if (isset($manifestStyleables)) {
+        foreach ($manifestStyleables as $styleName => $data) {
+            if (!str_starts_with($styleName, 'AndroidManifest')) continue;
 
-    foreach ($manifestStyleables as $styleName => $data) {
+            $clean = ($styleName === 'AndroidManifest') ? 'Manifest' : str_replace('AndroidManifest', '', $styleName);
+            $tagName = $mapManifest[$clean] ?? strtolower($clean);
+            $manifestTagsList[] = $tagName;
 
-        // Só queremos os que começam com AndroidManifest
-        if (!str_starts_with($styleName, 'AndroidManifest')) continue;
+            $attrsJson = json_encode($data['attrs']);
+            $parent = $data['parent'];
 
-        if ($styleName === 'AndroidManifest')
-            $clean = 'Manifest';
-        else
-            $clean = str_replace('AndroidManifest', '', $styleName);
-        if (!$clean) continue;
-        $map = [
-            'Manifest' => 'manifest',
-            'Application' => 'application',
-            'Activity' => 'activity',
-            'Service' => 'service',
-            'Receiver' => 'receiver',
-            'Provider' => 'provider',
-            'UsesPermission' => 'uses-permission',
-            'UsesSdk' => 'uses-sdk',
-            'IntentFilter' => 'intent-filter',
-            'Permission' => 'permission',
-            'Manifest' => 'manifest'
-        ];
-
-        $tagName = $map[$clean] ?? strtolower($clean);
-
-        // 🔥 AQUI está a mágica da herança
-        $manifestAttrsAuto[$tagName] =
-            resolveManifestStyleable($styleName, $manifestStyleables);
+            if ($parent && isset($manifestStyleables[$parent])) {
+                $parentClean = ($parent === 'AndroidManifest') ? 'Manifest' : str_replace('AndroidManifest', '', $parent);
+                $parentTag = $mapManifest[$parentClean] ?? strtolower($parentClean);
+                $manifestEntries[] = "\"$tagName\": [...GLOBAL.xml_tags.manifest.attrs.$parentTag, ...$attrsJson]";
+            } else {
+                $manifestEntries[] = "\"$tagName\": $attrsJson";
+            }
+        }
     }
+    $manifestJS = "{\n            " . implode(",\n            ", $manifestEntries) . "\n        }";
 }
 function resolveManifestStyleable($name, $styleables)
 {
@@ -147,4 +151,22 @@ function resolveManifestStyleable($name, $styleables)
     }
 
     return array_values(array_unique($attrs));
+}
+function getManifestInheritance($name, $styleables, $map)
+{
+    if (!isset($styleables[$name])) return ['attrs' => []];
+
+    $current = $styleables[$name];
+    $parent = $current['parent'];
+    $parentTag = null;
+
+    if ($parent) {
+        $parentClean = str_replace('AndroidManifest', '', $parent) ?: 'Manifest';
+        $parentTag = $map[$parentClean] ?? strtolower($parentClean);
+    }
+
+    return [
+        'parentTag' => $parentTag,
+        'attrs' => $current['attrs']
+    ];
 }
