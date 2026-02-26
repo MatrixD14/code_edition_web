@@ -7,30 +7,84 @@ $GLOBAL_attrValueType = [];
 $GLOBAL_xml_values_enums = [];
 $tempStyleables = [];
 
+function processXmlAttr($attr, &$GLOBAL_xml_values_enums)
+{
+    $name = (string)$attr['name'];
+    if (!$name || str_starts_with($name, '__')) return null;
+    $detectedTypes = [];
+    if ($attr->flag->count() > 0 || $attr->enum->count() > 0) {
+        $values = [];
+        $nodes = $attr->flag->count() > 0 ? $attr->flag : $attr->enum;
+        foreach ($nodes as $node) {
+            $values[] = (string)$node['name'];
+        }
+        $GLOBAL_xml_values_enums[$name] = $values;
+        $detectedTypes[] = "enums.$name";
+    }
+    $formatAttr = (string)$attr['format'];
+    $formats = $formatAttr !== '' ? explode('|', $formatAttr) : [];
+    $map = [
+        'boolean'   => 'boolean',
+        'integer'   => 'integer',
+        'float'     => 'float',
+        'dimension' => 'dimension',
+        'color'     => 'color',
+        'string'    => 'string'
+    ];
+
+    foreach ($map as $key => $val) {
+        if (in_array($key, $formats)) {
+            $detectedTypes[] = $val;
+            if ($key === 'color' || $key === 'string') $detectedTypes[] = "refs.$key";
+        }
+    }
+    if (in_array('reference', $formats)) {
+        if (preg_match('/(src|icon|drawable|background|thumb|button|indeterminateDrawable)/i', $name)) {
+            $detectedTypes[] = "refs.drawable";
+        }
+        if (preg_match('/(style|appearance|theme)/i', $name)) {
+            $detectedTypes[] = "refs.style";
+        }
+        if (preg_match('/(id|below|above|toLeft|toRight|toStart|toEnd|align)/i', $name)) {
+            $detectedTypes[] = "refs.id_ref";
+        }
+        if ($name === 'id') $detectedTypes[] = "refs.id_new";
+        if (!preg_grep('/^refs\./', $detectedTypes)) {
+            $detectedTypes[] = "refs.id_ref";
+            $detectedTypes[] = "refs.string";
+        }
+        if (in_array('dimension', $formats)) {
+            if (str_contains($name, 'textSize') || str_contains($name, 'TextSize')) {
+                $detectedTypes[] = "sp_dimen";
+            } else {
+                $detectedTypes[] = "dp_dimen";
+            }
+        }
+    }
+
+    return !empty($detectedTypes) ? implode("|", array_unique($detectedTypes)) : null;
+}
+
+function resolveLayoutAttrs($tag, $tagAttrsAuto, $mapaPaiLayout)
+{
+    $attrs = $tagAttrsAuto[$tag] ?? [];
+    if (isset($mapaPaiLayout[$tag])) {
+        $pai = $mapaPaiLayout[$tag];
+        $parentAttrs = resolveLayoutAttrs($pai, $tagAttrsAuto, $mapaPaiLayout);
+        $attrs = array_merge($parentAttrs, $attrs);
+    }
+    return array_values(array_unique($attrs));
+}
+
 $attrsPath = $platforms . '/data/res/values/attrs.xml';
 
 if (file_exists($attrsPath)) {
     $xml = @simplexml_load_file($attrsPath);
     if ($xml) {
         foreach ($xml->xpath('//attr') as $attr) {
-            $name = (string)$attr['name'];
-            if (!$name || str_starts_with($name, '__')) continue;
-
-            if ($attr->flag->count() > 0 || $attr->enum->count() > 0) {
-                $values = [];
-                $nodes = $attr->flag->count() > 0 ? $attr->flag : $attr->enum;
-                foreach ($nodes as $node) {
-                    $values[] = (string)$node['name'];
-                }
-                $GLOBAL_xml_values_enums[$name] = $values;
-                $GLOBAL_attrValueType[$name] = "enums.$name";
-            } else {
-                $formatAttr = (string)$attr['format'];
-                $formats = $formatAttr !== '' ? explode('|', $formatAttr) : [];
-                if (in_array('boolean', $formats)) $GLOBAL_attrValueType[$name] = "boolean";
-                elseif (in_array('dimension', $formats)) $GLOBAL_attrValueType[$name] = "dimension";
-                elseif (in_array('color', $formats)) $GLOBAL_attrValueType[$name] = "refs.color";
-                elseif (in_array('reference', $formats)) $GLOBAL_attrValueType[$name] = "refs.id_ref";
+            $typeStr = processXmlAttr($attr, $GLOBAL_xml_values_enums);
+            if ($typeStr) {
+                $GLOBAL_attrValueType[(string)$attr['name']] = $typeStr;
             }
         }
 
@@ -86,19 +140,34 @@ if (file_exists($attrsPath)) {
         });
         $tagAttrsAuto[$tag] = array_values(array_unique($attrsLimpos));
     }
+    $paisNecessarios = ["TextView", "ImageView", "ProgressBar", "AbsListView", "ViewAnimator", "View", "ViewGroup"];
+
+    $jsLayoutPrototypes = "var layoutParents = {};\n";
+    foreach ($paisNecessarios as $pai) {
+        if ($pai === 'View') $attrs = $viewBase;
+        elseif ($pai === 'ViewGroup') $attrs = $tempStyleables["ViewGroup"] ?? [];
+        else $attrs = resolveLayoutAttrs($pai, $tagAttrsAuto, $mapaPaiLayout);
+
+        $jsLayoutPrototypes .= "layoutParents['$pai'] = " . json_encode(array_values(array_unique($attrs))) . ";\n";
+    }
+
     $layoutEntries = [];
     foreach ($tagAttrsAuto as $tag => $attrs) {
+        if (in_array($tag, $paisNecessarios)) {
+            $layoutEntries[] = "'$tag': layoutParents['$tag']";
+            continue;
+        }
         if (isset($mapaPaiLayout[$tag])) {
             $pai = $mapaPaiLayout[$tag];
             $especificos = array_diff($attrs, $tagAttrsAuto[$pai] ?? []);
             if (empty($especificos)) {
-                $layoutEntries[] = "$tag: [...GLOBAL.xml_tags.layout.tagAttrs.$pai]";
+                $layoutEntries[] = "'$tag': layoutParents['$pai']";
             } else {
-                $especificosJson = trim(json_encode(array_values($especificos)), "[]");
-                $layoutEntries[] = "$tag: [...GLOBAL.xml_tags.layout.tagAttrs.$pai,$especificosJson]";
+                $especificosJson = json_encode(array_values($especificos));
+                $layoutEntries[] = "'$tag': [...layoutParents['$pai'], ...$especificosJson]";
             }
         } else {
-            $layoutEntries[] = "$tag: " . json_encode($tagAttrsAuto[$tag]);
+            $layoutEntries[] = "'$tag': " . json_encode($tagAttrsAuto[$tag]);
         }
     }
     $layoutTagAttrsJS = "{\n            " . implode(",\n            ", $layoutEntries) . "\n        }";
@@ -127,7 +196,6 @@ if (file_exists($attrsPath)) {
 
     $finalBase = array_values(array_filter($finalBaseRaw, function ($attr) {
         $blackList = ['__removed', 'nextCluster', 'keyboardNavigation'];
-
         foreach ($blackList as $word) {
             if (str_contains($attr, $word)) return false;
         }

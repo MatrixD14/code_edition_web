@@ -6,133 +6,81 @@ if (file_exists($manifestAttrsPath)) {
     $xmlManifest = simplexml_load_file($manifestAttrsPath);
 
     foreach ($xmlManifest->xpath('//attr') as $attr) {
-
-        $name = (string) $attr['name'];
-        if (!$name) continue;
-
-        $allAvailableAttributes[] = $name;
-
-        // FLAGS
-        if ($attr->flag->count() > 0) {
-            $values = [];
-            foreach ($attr->flag as $flag) {
-                $values[] = (string)$flag['name'];
-            }
-
-            $GLOBAL_xml_values_enums[$name] = $values;
-            $GLOBAL_attrValueType[$name] = "enums.$name";
-            continue;
-        }
-
-        // ENUM
-        if ($attr->enum->count() > 0) {
-            $values = [];
-            foreach ($attr->enum as $enum) {
-                $values[] = (string)$enum['name'];
-            }
-
-            $GLOBAL_xml_values_enums[$name] = $values;
-            $GLOBAL_attrValueType[$name] = "enums.$name";
-            continue;
-        }
-        $formatAttr = (string) $attr['format'];
-        $formats = $formatAttr !== '' ? explode('|', $formatAttr) : [];
-
-        if (in_array('boolean', $formats)) {
-            $GLOBAL_attrValueType[$name] = "boolean";
-        } elseif (in_array('string', $formats)) {
-            $GLOBAL_attrValueType[$name] = "string";
+        $typeStr = processXmlAttr($attr, $GLOBAL_xml_values_enums);
+        if ($typeStr) {
+            $GLOBAL_attrValueType[(string)$attr['name']] = $typeStr;
         }
     }
-    // foreach ($xmlManifest->{'declare-styleable'} as $styleable) {
 
-    //     $styleName = (string) $styleable['name'];
-    //     $attrs = [];
-
-    //     foreach ($styleable->attr as $a) {
-    //         $attrName = (string) $a['name'];
-    //         if ($attrName) $attrs[] = $attrName;
-    //     }
-
-    //     // Manifest tags começam com AndroidManifest
-    //     if (str_starts_with($styleName, 'AndroidManifest')) {
-
-    //         $clean = str_replace('AndroidManifest', '', $styleName);
-
-    //         $map = [
-    //             'Application' => 'application',
-    //             'Activity' => 'activity',
-    //             'Service' => 'service',
-    //             'Receiver' => 'receiver',
-    //             'Provider' => 'provider',
-    //             'UsesPermission' => 'uses-permission',
-    //             'UsesSdk' => 'uses-sdk',
-    //             'IntentFilter' => 'intent-filter',
-    //             'Permission' => 'permission',
-    //             'Manifest' => 'manifest'
-    //         ];
-
-    //         $tagName = $map[$clean] ?? strtolower($clean);
-
-    //         $manifestAttrsAuto[$tagName] = $attrs;
-    //     }
-    // }
-
-    $manifestStyleables = [];
-
-    foreach ($xmlManifest->{'declare-styleable'} as $styleable) {
-
-        $styleName = (string) $styleable['name'];
-        $parent = (string) $styleable['parent'];
-
-        $attrs = [];
-
-        foreach ($styleable->attr as $a) {
-            $attrName = (string) $a['name'];
-            if ($attrName) $attrs[] = $attrName;
-        }
-
-        $manifestStyleables[$styleName] = [
-            'attrs' => $attrs,
-            'parent' => $parent ?: null
+    if (isset($xmlManifest)) {
+        $manifestStyleables = [];
+        $mapManifest = [
+            'Manifest' => 'manifest',
+            'Application' => 'application',
+            'Activity' => 'activity',
+            'Service' => 'service',
+            'Receiver' => 'receiver',
+            'Provider' => 'provider',
+            'UsesPermission' => 'uses-permission',
+            'UsesSdk' => 'uses-sdk',
+            'IntentFilter' => 'intent-filter',
+            'Permission' => 'permission',
+            'Manifest' => 'manifest'
         ];
-    }
-    // $manifestAttrsAuto = [];
-    $manifestEntries = [];
-    $map = [
-        'Manifest' => 'manifest',
-        'Application' => 'application',
-        'Activity' => 'activity',
-        'Service' => 'service',
-        'Receiver' => 'receiver',
-        'Provider' => 'provider',
-        'UsesPermission' => 'uses-permission',
-        'UsesSdk' => 'uses-sdk',
-        'IntentFilter' => 'intent-filter',
-        'Permission' => 'permission',
-        'Manifest' => 'manifest'
-    ];
-    if (isset($manifestStyleables)) {
+        foreach ($xmlManifest->{'declare-styleable'} as $styleable) {
+            $styleName = (string) $styleable['name'];
+            $parent = (string) $styleable['parent'];
+            $attrs = [];
+            foreach ($styleable->attr as $a) {
+                $attrName = (string) $a['name'];
+                if ($attrName) $attrs[] = $attrName;
+            }
+            $manifestStyleables[$styleName] = [
+                'attrs' => $attrs,
+                'parent' => $parent ?: null
+            ];
+        }
+        $manifestParentsNecessarios = ['AndroidManifest', 'AndroidManifestApplication'];
+        $jsManifestPrototypes = "var manifestParents = {};\n";
+        foreach ($manifestParentsNecessarios as $parentName) {
+            $attrsResolvidos = resolveManifestStyleable($parentName, $manifestStyleables);
+            $clean = ($parentName === 'AndroidManifest') ? 'Manifest' : str_replace('AndroidManifest', '', $parentName);
+            $parentTag = $mapManifest[$clean] ?? strtolower($clean);
+            $jsManifestPrototypes .= "manifestParents['$parentTag'] = " . json_encode($attrsResolvidos) . ";\n";
+        }
+        $manifestEntries = [];
+        $manifestTagsList = [];
         foreach ($manifestStyleables as $styleName => $data) {
             if (!str_starts_with($styleName, 'AndroidManifest')) continue;
 
             $clean = ($styleName === 'AndroidManifest') ? 'Manifest' : str_replace('AndroidManifest', '', $styleName);
             $tagName = $mapManifest[$clean] ?? strtolower($clean);
+            if ($tagName === 'manifest') {
+                if (!in_array('package', $data['attrs']))
+                    $data['attrs'][] = 'package';
+            }
             $manifestTagsList[] = $tagName;
-
-            $attrsJson = json_encode($data['attrs']);
             $parent = $data['parent'];
 
             if ($parent && isset($manifestStyleables[$parent])) {
                 $parentClean = ($parent === 'AndroidManifest') ? 'Manifest' : str_replace('AndroidManifest', '', $parent);
                 $parentTag = $mapManifest[$parentClean] ?? strtolower($parentClean);
-                $manifestEntries[] = "\"$tagName\": [...GLOBAL.xml_tags.manifest.attrs.$parentTag, ...$attrsJson]";
+                $especificos = $data['attrs'];
+                $especificosJson = json_encode(array_values($especificos));
+
+                $manifestEntries[] = "\"$tagName\": [...(manifestParents['$parentTag'] || []), ...$especificosJson]";
             } else {
-                $manifestEntries[] = "\"$tagName\": $attrsJson";
+                if (in_array($styleName, $manifestParentsNecessarios)) {
+                    $cleanProt = ($styleName === 'AndroidManifest') ? 'Manifest' : str_replace('AndroidManifest', '', $styleName);
+                    $tagProt = $mapManifest[$cleanProt] ?? strtolower($cleanProt);
+                    $manifestEntries[] = "\"$tagName\": manifestParents['$tagProt']";
+                } else {
+                    $manifestEntries[] = "\"$tagName\": " . json_encode($data['attrs']);
+                }
             }
         }
+        $manifestJS = "{\n            " . implode(",\n            ", $manifestEntries) . "\n        }";
     }
-    $manifestJS = "{\n            " . implode(",\n            ", $manifestEntries) . "\n        }";
 }
 function resolveManifestStyleable($name, $styleables)
 {
@@ -151,22 +99,4 @@ function resolveManifestStyleable($name, $styleables)
     }
 
     return array_values(array_unique($attrs));
-}
-function getManifestInheritance($name, $styleables, $map)
-{
-    if (!isset($styleables[$name])) return ['attrs' => []];
-
-    $current = $styleables[$name];
-    $parent = $current['parent'];
-    $parentTag = null;
-
-    if ($parent) {
-        $parentClean = str_replace('AndroidManifest', '', $parent) ?: 'Manifest';
-        $parentTag = $map[$parentClean] ?? strtolower($parentClean);
-    }
-
-    return [
-        'parentTag' => $parentTag,
-        'attrs' => $current['attrs']
-    ];
 }

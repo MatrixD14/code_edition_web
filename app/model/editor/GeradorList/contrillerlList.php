@@ -25,5 +25,6 @@ require_once 'lista_java.php';
 require_once 'list_xml_layout.php';
 require_once 'list_xml_manifest.php';
 require_once 'list_xml.php';
+require_once 'list_@Android.php';
 
-voltapagina("Concluído ✔\njava import: " . count($classes) . "\nTags: " . count($widgetClasses) . "\nAtributos: " . count($GLOBAL_attrValueType));
+voltapagina("Concluído ✔\njava import: " . count($classes) . "\nTags: " . count($widgetClasses) . "\nAtributos: " . count($GLOBAL_attrValueType) . "\n@Android: " . count($organized));
